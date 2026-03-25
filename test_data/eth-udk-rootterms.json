@@ -1,0 +1,247 @@
+{
+  "1": [
+    {
+      "descriptor_name": "LANGUAGES (DICTIONARIES)",
+      "category_label": "genre",
+      "root_term": "facet"
+    }
+  ],
+  "102": [
+    {
+      "descriptor_name": "DISTINCTIONS + PRIZES + AWARDS",
+      "category_label": "topical",
+      "root_term": "facet"
+    }
+  ],
+  "132": [
+    {
+      "descriptor_name": "ZONES",
+      "category_label": "topical",
+      "root_term": "facet"
+    }
+  ],
+  "136": [
+    {
+      "descriptor_name": "ORIENTATION + POINTS OF THE COMPASS + RELATIVE POSITION (PHYSIOGEOGRAPHIC DESIGNATION)",
+      "category_label": "topical",
+      "root_term": "facet"
+    }
+  ],
+  "146": [
+    {
+      "descriptor_name": "LOWEST ADMINISTRATIVE UNITS",
+      "category_label": "topical",
+      "root_term": "facet"
+    }
+  ],
+  "152": [
+    {
+      "descriptor_name": "LARGER UNITS WITHIN THE STATE (ADMINISTRATION UNITS)",
+      "category_label": "topical",
+      "root_term": "facet"
+    }
+  ],
+  "161": [
+    {
+      "descriptor_name": "LOCATION",
+      "category_label": "topical",
+      "root_term": "facet"
+    }
+  ],
+  "164": [
+    {
+      "descriptor_name": "REGIONALIZATION ACCORDING TO SPECIALIZED POINTS OF VIEW",
+      "category_label": "topical",
+      "root_term": "facet"
+    }
+  ],
+  "165": [
+    {
+      "descriptor_name": "WORLD, EARTH (PHYSIOGEOGRAPHIC DESIGNATION)",
+      "category_label": "geographical",
+      "root_term": "facet"
+    }
+  ],
+  "1582": [
+    {
+      "descriptor_name": "PLACES OF THE MODERN WORLD",
+      "category_label": "geographical",
+      "root_term": "facet"
+    }
+  ],
+  "8817": [
+    {
+      "descriptor_name": "PEOPLES, ETHNIC GROUPS",
+      "category_label": "topical",
+      "root_term": "domain"
+    }
+  ],
+  "8909": [
+    {
+      "descriptor_name": "TIME AND CHRONOLOGY",
+      "category_label": "topical",
+      "root_term": "facet"
+    }
+  ],
+  "8913": [
+    {
+      "descriptor_name": "SEASONS",
+      "category_label": "topical",
+      "root_term": "facet"
+    }
+  ],
+  "8918": [
+    {
+      "descriptor_name": "TIME OF WAR, OF PEACE",
+      "category_label": "topical",
+      "root_term": "facet"
+    }
+  ],
+  "8922": [
+    {
+      "descriptor_name": "DURATION",
+      "category_label": "topical",
+      "root_term": "facet"
+    }
+  ],
+  "8926": [
+    {
+      "descriptor_name": "PERIODICITY",
+      "category_label": "topical",
+      "root_term": "facet"
+    }
+  ],
+  "8942": [
+    {
+      "descriptor_name": "PHENOMENOLOGY OF TIME",
+      "category_label": "topical",
+      "root_term": "facet"
+    }
+  ],
+  "8945": [
+    {
+      "descriptor_name": "PERSONS AND PERSONAL CHARACTERISTICS",
+      "category_label": "topical",
+      "root_term": "domain"
+    }
+  ],
+  "8975": [
+    {
+      "descriptor_name": "POINT OF VIEW",
+      "category_label": "topical",
+      "root_term": "facet"
+    }
+  ],
+  "9365": [
+    {
+      "descriptor_name": "PHILOSOPHY",
+      "category_label": "topical",
+      "root_term": "domain"
+    }
+  ],
+  "9790": [
+    {
+      "descriptor_name": "RELIGION + THEOLOGY",
+      "category_label": "topical",
+      "root_term": "domain"
+    }
+  ],
+  "11719": [
+    {
+      "descriptor_name": "MILITARY SCIENCE + MILITARY AFFAIRS",
+      "category_label": "topical",
+      "root_term": "domain"
+    }
+  ],
+  "32280": [
+    {
+      "descriptor_name": "PRINTING, PUBLISHING, BOOK TRADE AND BIBLIOLOGY",
+      "category_label": "topical",
+      "root_term": "domain"
+    }
+  ],
+  "35232": [
+    {
+      "descriptor_name": "ART",
+      "category_label": "topical",
+      "root_term": "domain"
+    }
+  ],
+  "35872": [
+    {
+      "descriptor_name": "PHOTOGRAPHY AND SIMILAR PROCESSES",
+      "category_label": "topical",
+      "root_term": "domain"
+    }
+  ],
+  "36018": [
+    {
+      "descriptor_name": "ENTERTAINMENT + GAMES + SPORT",
+      "category_label": "topical",
+      "root_term": "domain"
+    }
+  ],
+  "36548": [
+    {
+      "descriptor_name": "GEOGRAPHY, ARCHAEOLOGY, HISTORY, BIOGRAPHY, LOCAL STUDIES",
+      "category_label": "topical",
+      "root_term": "domain"
+    }
+  ],
+  "37109": [
+    {
+      "descriptor_name": "COLLECTED WORKS, BOOKS (IN GENERAL), INFORMATION SOURCES, PERIODICALS, NON-BOOKS, TABLES, LEGAL SOURCES (DOCUMENT TYPES)",
+      "category_label": "genre",
+      "root_term": "facet"
+    }
+  ],
+  "50645": [
+    {
+      "descriptor_name": "DAYS AND TIMES OF DAY",
+      "category_label": "topical",
+      "root_term": "facet"
+    }
+  ],
+  "54303": [
+    {
+      "descriptor_name": "CENTURIES",
+      "category_label": "topical",
+      "root_term": "facet"
+    }
+  ],
+  "54865": [
+    {
+      "descriptor_name": "TIME FOR DAILY ROUTINE, LIKE MEALS ETC.",
+      "category_label": "topical",
+      "root_term": "facet"
+    }
+  ],
+  "59832": [
+    {
+      "descriptor_name": "BUILT ENVIRONMENT + ENVIRONMENTAL DESIGN",
+      "category_label": "topical",
+      "root_term": "domain"
+    }
+  ],
+  "60824": [
+    {
+      "descriptor_name": "SPHERES OF PRIVATE OR COLLECTIVE ACTIVITY",
+      "category_label": "topical",
+      "root_term": "facet"
+    }
+  ],
+  "61346": [
+    {
+      "descriptor_name": "GENERALITIES IN SCIENCES AND KNOWLEDGE, ORGANIZATION, DOCUMENTATIONN, LIBRARIANSHIP, INSTITUTIONS, PUBLICATIONS",
+      "category_label": "topical",
+      "root_term": "domain"
+    }
+  ],
+  "66191": [
+    {
+      "descriptor_name": "ERA",
+      "category_label": "chronological",
+      "root_term": "facet"
+    }
+  ]
+}
