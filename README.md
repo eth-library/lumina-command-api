@@ -18,8 +18,6 @@ Within the broader **Lumina initiative**, this service enables:
 - Transformation pipelines for downstream systems
 - Scalable processing of large datasets
 
----
-
 ## Architecture (Simplified)
 
 ```
@@ -35,8 +33,6 @@ Client (Postman / Lumina Studio)
     Output (JSON / CSV)
 ```
 
----
-
 ## User Guide
 
 ### Available Endpoints
@@ -47,15 +43,11 @@ Client (Postman / Lumina Studio)
 
 Returns transformed and enriched JSON.
 
----
-
 #### 2. Transform ETH UDK → CSV
 
 **POST** `/commands/transform-eth-udk-csv`
 
 Returns transformed and enriched CSV.
-
----
 
 ### Input Format
 
@@ -66,14 +58,10 @@ Both endpoints expect:
 | source_file | File | ETH UDK dataset (.json or .json.gz) |
 | rootterms_file | File | Root terms lookup (.json or .json.gz) |
 
----
-
 ### Output
 
 - JSON → streamed response
 - CSV → streamed response
-
----
 
 ### Large File Handling
 
@@ -81,8 +69,6 @@ Due to Cloud Run request limits (~32MB), gzip is supported:
 
 - `.json` → supported
 - `.json.gz` → recommended
-
----
 
 ## Developer Guide
 
@@ -95,16 +81,12 @@ Due to Cloud Run request limits (~32MB), gzip is supported:
 - Git
 - Google Cloud SDK (`gcloud`)
 
----
-
 ### 1. Clone Repository
 
 ```bash
 git clone <your-repo-url>
 cd lumina-command-api
 ```
-
----
 
 ### 2. Create Virtual Environment
 
@@ -118,23 +100,17 @@ Activate:
 .venv\Scripts\activate
 ```
 
----
-
 ### 3. Install Dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
----
-
 ### 4. Configure VS Code
 
 - Open project folder
 - `Ctrl + Shift + P` → *Python: Select Interpreter*
 - Select `.venv`
-
----
 
 ### 5. Run Local Server
 
@@ -148,8 +124,6 @@ Swagger UI:
 http://127.0.0.1:8080/docs
 ```
 
----
-
 ## Google Cloud Setup
 
 ### Login
@@ -157,8 +131,6 @@ http://127.0.0.1:8080/docs
 ```bash
 gcloud auth login
 ```
-
----
 
 ### Create Project
 
@@ -170,23 +142,17 @@ gcloud projects create lumina-project
 gcloud config set project lumina-project
 ```
 
----
-
 ### Enable APIs
 
 ```bash
 gcloud services enable run.googleapis.com
 ```
 
----
-
 ### Set Region
 
 ```bash
 gcloud config set run/region europe-west6
 ```
-
----
 
 ## Deployment
 
@@ -196,8 +162,6 @@ gcloud config set run/region europe-west6
 ./deploy.sh
 ```
 
----
-
 ## Commands Summary
 
 ### Start Local Server
@@ -206,15 +170,11 @@ gcloud config set run/region europe-west6
 uvicorn app.main:app --reload --port 8080
 ```
 
----
-
 ### Run Pipeline Test
 
 ```bash
 python test_pipeline.py
 ```
-
----
 
 ### Deploy to Cloud Run
 
@@ -222,15 +182,11 @@ python test_pipeline.py
 ./deploy.sh
 ```
 
----
-
 ### View Logs
 
 ```bash
 gcloud run services logs read lumina-command-api --region europe-west6
 ```
-
----
 
 ## Project Structure
 
@@ -249,8 +205,6 @@ app/
       ...
 ```
 
----
-
 ## Planned Extensions
 
 - Additional transformation pipelines
@@ -258,9 +212,5 @@ app/
 - Classification services
 - Async processing for large jobs
 
----
 
-## License
-
-This project is licensed under the Apache License 2.0.
 
