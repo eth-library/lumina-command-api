@@ -3,3 +3,8 @@ uvicorn[standard]>=0.27.0
 gunicorn>=22.0.0
 pydantic
 python-multipart
+openai>=1.0.0
+pinecone>=5.0.0
+pandas>=2.0.0
+python-dotenv>=1.0.0
+tqdm>=4.60.0

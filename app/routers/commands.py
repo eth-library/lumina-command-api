@@ -1,11 +1,16 @@
-from fastapi import APIRouter, UploadFile, File, Request
-from fastapi.responses import StreamingResponse
+from fastapi import APIRouter, UploadFile, File, Form, Request
+from fastapi.responses import StreamingResponse, JSONResponse
 import json
 import io
 import gzip
+import logging
+import asyncio
 
 from app.services.transform_eth_udk import run_transform_eth_udk
+from app.services.pinecone_upsert import run_pinecone_upsert
 from app.transformers.eth_udk.step8_json_to_csv import transform as step8
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/commands", tags=["commands"])
 
@@ -80,3 +85,41 @@ async def transform_eth_udk_csv(
         io.StringIO(csv_content),
         media_type="text/csv"
     )
+
+
+# -------------------------
+# 3️⃣ Pinecone Upsert Endpoint
+# -------------------------
+@router.post("/upsert-pinecone")
+async def upsert_pinecone(
+    file: UploadFile = File(...),
+    index_name: str = Form(...),
+    namespace: str = Form(...),
+    embedding_fields: str = Form(...),
+):
+    # Parse embedding_fields JSON string
+    try:
+        fields_list = json.loads(embedding_fields)
+        if not isinstance(fields_list, list) or not all(isinstance(f, str) for f in fields_list):
+            raise ValueError("embedding_fields must be a JSON array of strings.")
+    except json.JSONDecodeError:
+        return JSONResponse(
+            status_code=400,
+            content={"detail": "embedding_fields must be a valid JSON array, e.g. '[\"descriptor_eng\"]'."},
+        )
+
+    try:
+        file_bytes = await file.read()
+        result = await asyncio.to_thread(
+            run_pinecone_upsert,
+            file_bytes=file_bytes,
+            index_name=index_name,
+            namespace=namespace,
+            embedding_fields=fields_list,
+        )
+        return result
+    except ValueError as exc:
+        return JSONResponse(status_code=400, content={"detail": str(exc)})
+    except Exception as exc:
+        logger.exception("Upsert failed")
+        return JSONResponse(status_code=500, content={"detail": str(exc)})
