@@ -71,10 +71,10 @@ def transform(data: list[dict]) -> list[dict]:
             if lang in variant_mapping and name:
                 new_obj[variant_mapping[lang]] = name
 
-        # --- Convert lists to CSV-style strings ---
-        new_obj["broader_terms"] = ",".join(map(str, obj.get("broader_terms", [])))
-        new_obj["narrower_terms"] = ",".join(map(str, obj.get("narrower_terms", [])))
-        new_obj["related_terms"] = ",".join(map(str, obj.get("related_terms", [])))
+        # --- Preserve term lists (no flattening here) ---
+        new_obj["broader_terms"] = obj.get("broader_terms", [])
+        new_obj["narrower_terms"] = obj.get("narrower_terms", [])
+        new_obj["related_terms"] = obj.get("related_terms", [])
 
         # --- Preserve enrichment fields ---
         if "broader_terms_names" in obj:

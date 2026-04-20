@@ -6,6 +6,9 @@ logger = logging.getLogger(__name__)
 def transform(data: list[dict]) -> list[dict]:
     """
     STEP 7b — Compute hierarchy levels (optimized BFS).
+
+    Assumes:
+    - broader_terms is a list of parent sys IDs
     """
 
     # --- Lookup: sys → object ---
@@ -16,13 +19,15 @@ def transform(data: list[dict]) -> list[dict]:
 
     for obj in data:
         obj_id = str(obj["sys"])
-        broader_terms = obj.get("broader_terms", "")
+        broader_terms = obj.get("broader_terms", [])
 
-        if broader_terms:
-            parent_ids = broader_terms.split(",")
+        # Ensure it's a list
+        if not isinstance(broader_terms, list):
+            continue
 
-            for parent_id in parent_ids:
-                children_map.setdefault(parent_id, []).append(obj_id)
+        for parent_id in broader_terms:
+            parent_id = str(parent_id)
+            children_map.setdefault(parent_id, []).append(obj_id)
 
     # --- Initialize levels ---
     for obj in data:
@@ -32,7 +37,9 @@ def transform(data: list[dict]) -> list[dict]:
     queue = []
 
     for obj in data:
-        if not obj.get("broader_terms"):
+        broader_terms = obj.get("broader_terms", [])
+
+        if not broader_terms:
             obj["level"] = 0
             queue.append(str(obj["sys"]))
 

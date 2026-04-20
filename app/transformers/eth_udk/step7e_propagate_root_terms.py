@@ -7,21 +7,8 @@ def transform(data: list[dict]) -> list[dict]:
     """
     STEP 7e — Propagate root term information to all descendants.
 
-    This step propagates:
-        - descriptor_name
-        - category_label
-        - root_term
-
-    from root nodes down through the hierarchy using narrower_terms.
-
-    Parameters
-    ----------
-    data : list[dict]
-
-    Returns
-    -------
-    list[dict]
-        Fully enriched dataset
+    Assumes:
+    - narrower_terms is a list of sys IDs
     """
 
     # --- Build lookup: sys → record ---
@@ -38,15 +25,16 @@ def transform(data: list[dict]) -> list[dict]:
         cat_label = root.get("category_label")
         root_term = root.get("root_term")
 
-        # Parse narrower_terms (string → list)
-        narrower_terms = root.get("narrower_terms", "")
-        if isinstance(narrower_terms, str) and narrower_terms:
-            queue = narrower_terms.split(",")
-        else:
-            queue = []
+        # --- Initialize queue from list ---
+        narrower_terms = root.get("narrower_terms", [])
+
+        if not isinstance(narrower_terms, list):
+            continue
+
+        queue = list(narrower_terms)
 
         while queue:
-            current_sys = queue.pop(0)
+            current_sys = str(queue.pop(0))
 
             if current_sys in sys_lookup:
                 child = sys_lookup[current_sys]
@@ -57,10 +45,11 @@ def transform(data: list[dict]) -> list[dict]:
                     child["category_label"] = cat_label
                     child["root_term"] = root_term
 
-                    # Continue traversal
-                    child_narrower = child.get("narrower_terms", "")
-                    if isinstance(child_narrower, str) and child_narrower:
-                        queue.extend(child_narrower.split(","))
+                    # --- Continue traversal ---
+                    child_narrower = child.get("narrower_terms", [])
+
+                    if isinstance(child_narrower, list):
+                        queue.extend(child_narrower)
 
     # --- Stats ---
     enriched_count = sum(1 for r in data if "descriptor_name" in r)

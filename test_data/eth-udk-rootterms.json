@@ -153,6 +153,20 @@
       "root_term": "domain"
     }
   ],
+  "12310": [
+    {
+      "descriptor_name": "METROLOGY, WEIGHTS AND MEASURES",
+      "category_label": "unknown",
+      "root_term": "unknown"
+    }
+  ],
+  "20664": [
+    {
+      "descriptor_name": "ORE DEPOSITS (MINERAL DEPOSITS)",
+      "category_label": "unknown",
+      "root_term": "unknown"
+    }
+  ],
   "32280": [
     {
       "descriptor_name": "PRINTING, PUBLISHING, BOOK TRADE AND BIBLIOLOGY",
@@ -172,6 +186,13 @@
       "descriptor_name": "PHOTOGRAPHY AND SIMILAR PROCESSES",
       "category_label": "topical",
       "root_term": "domain"
+    }
+  ],
+  "36352": [
+    {
+      "descriptor_name": "DEAD LANGUAGES (LINGUISTICS)",
+      "category_label": "unknown",
+      "root_term": "unknown"
     }
   ],
   "36018": [
@@ -195,11 +216,25 @@
       "root_term": "facet"
     }
   ],
+  "38525": [
+    {
+      "descriptor_name": "WEREWOLVES + VAMPIRES (ETHNOLOGY)",
+      "category_label": "unknown",
+      "root_term": "unknown"
+    }
+  ],
   "50645": [
     {
       "descriptor_name": "DAYS AND TIMES OF DAY",
       "category_label": "topical",
       "root_term": "facet"
+    }
+  ],
+  "51457": [
+    {
+      "descriptor_name": "LAND AND LANDSCAPE MANAGEMENT",
+      "category_label": "unknown",
+      "root_term": "unknown"
     }
   ],
   "54303": [
