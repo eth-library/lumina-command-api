@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Reads OPENAI_API_KEY and PINECONE_API_KEY from .env and creates/updates
-# them in Google Cloud Secret Manager.
+# Reads OPENAI_API_KEY, PINECONE_API_KEY and INTERNAL_API_KEY from .env
+# and creates/updates them in Google Cloud Secret Manager.
 
 set -e
 
@@ -14,7 +14,7 @@ fi
 
 echo "📂 Reading $ENV_FILE..."
 
-SECRETS=("OPENAI_API_KEY" "PINECONE_API_KEY")
+SECRETS=("OPENAI_API_KEY" "PINECONE_API_KEY" "INTERNAL_API_KEY")
 
 for SECRET_NAME in "${SECRETS[@]}"; do
   echo "🔍 Looking for $SECRET_NAME in $ENV_FILE..."

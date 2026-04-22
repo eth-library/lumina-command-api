@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, File, Form, Request
+from fastapi import APIRouter, Depends, UploadFile, File, Form, Request
 from fastapi.responses import StreamingResponse, JSONResponse
 import json
 import io
@@ -7,13 +7,14 @@ import logging
 import asyncio
 import uuid
 
+from app.auth import verify_api_key
 from app.services.transform_eth_udk import run_transform_eth_udk
 from app.services.pinecone_upsert import run_pinecone_upsert
 from app.transformers.eth_udk.step8_json_to_csv import transform as step8
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/commands", tags=["commands"])
+router = APIRouter(prefix="/commands", tags=["commands"], dependencies=[Depends(verify_api_key)])
 
 # In-memory job store for polling-based upsert
 _jobs: dict[str, dict] = {}
