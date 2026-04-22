@@ -190,14 +190,6 @@ uvicorn app.main:app --reload --port 8080
 - **Swagger UI:** http://127.0.0.1:8080/docs
 - **Health check:** http://127.0.0.1:8080/health
 
-### 7. Run Pipeline Test
-
-```bash
-python test_pipeline.py
-```
-
----
-
 ## Google Cloud Setup
 
 ### 1. Authenticate and Set Project
