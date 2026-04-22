@@ -152,7 +152,13 @@ pip install -r requirements.txt
 
 ### 4. Configure Environment Variables
 
-Create a `.env` file in the project root:
+Copy the template and fill in your keys:
+
+```bash
+cp .env.example .env
+```
+
+Then edit `.env` with your actual values:
 
 ```env
 PYTHONPATH=.
