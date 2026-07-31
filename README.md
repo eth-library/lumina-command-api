@@ -293,6 +293,10 @@ lumina-command-api/
 │           ├── step7d_add_cat_root_term.py
 │           ├── step7e_propagate_root_terms.py
 │           └── step8_json_to_csv.py
+├── docs/
+│   ├── adr/                     # Architecture Decision Records — why the system looks like it does
+│   ├── specs/                   # Module specs — what gets built, before it is built
+│   └── runbooks/                # Operational procedures — deploy, rotate secrets, run pipelines
 ├── test_data/                   # Sample datasets for testing
 ├── deploy.sh                    # Cloud Run deployment script
 ├── setup-secrets.sh             # Secret Manager setup script
