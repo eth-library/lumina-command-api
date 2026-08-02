@@ -22,6 +22,9 @@ Next number: **05**.
   say so explicitly and give the recovery path instead.
 - When an operational procedure changes, the runbook changes in the same commit. A runbook that
   describes last quarter's process is worse than no runbook, because it will be followed.
+- Every runbook carries a **Last verified** date — set it when you actually run the steps end to
+  end. `01`–`04` carry none: they were reconstructed from the code and scripts on 2026-07-31 and
+  have not been executed as written.
 
 ## Conventions used throughout
 

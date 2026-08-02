@@ -62,57 +62,49 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 ## 5. Documentation & way of working
 
-All project documentation lives in `docs/`. Three kinds, three purposes — don't mix them:
+Four kinds of document. Formats, templates, and index rules live in [`docs/README.md`](docs/README.md).
 
-```
-docs/
-├── adr/         # Architecture Decision Records — WHY the system looks like it does
-├── specs/       # Module specs — WHAT gets built, before it is built
-└── runbooks/    # Operational procedures — HOW to run, deploy, recover
-```
+| Where | Answers | Written |
+|-------|---------|---------|
+| `docs/adr/NNNN-kebab-title.md` | **Why** the system looks like it does | Before the decision is implemented |
+| `docs/specs/NN-modulename.md` | **What** gets built | Before the module is implemented |
+| `docs/runbooks/NN-task.md` | **How** to run, deploy, recover | In the same commit as the operational change |
+| `README.md`, `docs/SYSTEMOVERVIEW.md`, `docs/endpoints/` | **Summary** for readers — derived, no authority | On demand only |
 
-### ADRs — `docs/adr/NNNN-kebab-case-title.md`
+**ADR triggers** — adopt or replace a framework, runtime, hosting platform, or database · change how
+auth, authorization, or secrets work · add an integration that crosses a trust boundary · establish a
+cross-module convention · reverse a previous ADR. Not routine feature work, minor upgrades, or
+refactors that keep public contracts intact.
 
-Numbered monotonically (`0001`, `0002`, …), numbers are never reused. Slim Nygard template:
-`# NNNN — Title`, then **Status** (`Proposed` | `Accepted` | `Superseded by NNNN` | `Deprecated`),
-**Date**, **Deciders**, then `## Context`, `## Decision`, `## Consequences`, `## Alternatives considered`.
+**Spec trigger** — a new `/commands/*` endpoint, a new service in `app/services/`, or a new
+transformer package. Not bug fixes, and not changes inside an already-specced boundary.
 
-Write an ADR **before** the decision is implemented when you: adopt or replace a framework, runtime,
-hosting platform, or database; change how auth, authorization, or secrets work; add an external
-integration that crosses a trust boundary; establish a cross-module convention; or reverse a previous
-ADR. Not needed for routine feature work, minor upgrades, or refactors that keep public contracts.
+**Derived docs** — `README.md` is the GitHub-facing project summary and developer onboarding;
+[`docs/SYSTEMOVERVIEW.md`](docs/SYSTEMOVERVIEW.md) is the internal Confluence overview and
+[`docs/endpoints/`](docs/endpoints/) holds one Confluence page per command endpoint. All of them
+summarize the documents above and the code. They link to procedures rather than restating them, they
+are never a source of truth, and they are created or updated **only when asked** — never as a step in
+the loop.
 
-Superseding: write a **new** ADR referencing the predecessor, set the predecessor's status to
-`Superseded by NNNN`, and never edit its Decision section — it records what we believed at the time.
-`docs/adr/README.md` is the index and the source of truth for status.
-
-### Specs — `docs/specs/NN-modulename.md`
-
-Every module is specified before it is implemented. Each spec contains: **Goal** (what the user
-achieves), **User stories** (role-framed, concrete), **Acceptance criteria** (testable), **API sketch**
-(endpoints, mutations, schemas, data model). `docs/specs/README.md` holds the index with a status per
-spec: `Stub` → `Draft` → `Accepted` → `Implemented`.
-
-### Runbooks — `docs/runbooks/NN-task.md`
-
-One procedure per file, written so someone who did not build the system can execute it: prerequisites,
-placeholders/variables up front, numbered copy-pasteable steps, verification, rollback. Deploy,
-incident response, migrations, key rotation.
+**ADRs are immutable, specs are living.** Never edit an accepted ADR's Decision section — supersede it
+with a new ADR that references the predecessor. A spec is edited in place as the module changes; its
+number and file stay.
 
 ### The loop
 
 1. **Spec** the module in `docs/specs/` → review.
-2. **Plan** the implementation (plan mode) → review.
-3. **Implement** on `feature/NN-modulename`.
-4. **Review and test.**
-5. **Document** — write an ADR if an architectural decision was made; add or update a runbook if the
-   operational procedure changed; update the relevant index README.
-6. **Commit** with Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`).
+2. **ADR** if the work hits a trigger above → review. Written before the code, not after.
+3. **Plan** the implementation (plan mode) → review.
+4. **Implement** — on `feature/NN-modulename` when there is a spec; docs and small fixes can go
+   straight to `main`.
+5. **Review and test.**
+6. **Close the docs** — set the ADR to `Accepted` and the spec to `Implemented`; add or update a
+   runbook if an operational procedure changed; update the index README of anything you added.
+7. **Commit** with Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`).
 
-**Precedence:** an ADR beats `CLAUDE.md`; `CLAUDE.md` beats a spec; a spec beats an implementation habit. If you find a conflict, fix the document rather than working around it.
-
-**Don't:** implement a module without a spec · make an architectural decision without an ADR · edit an
-accepted ADR's Decision section in place · leave an index README stale after adding a document.
+**Precedence:** an ADR beats everything. On **scope**, a spec's acceptance criteria beat `CLAUDE.md` —
+do not trim agreed scope in the name of simplicity. On **process and style**, `CLAUDE.md` wins. On a
+conflict, fix the document rather than working around it.
 
 
 ---

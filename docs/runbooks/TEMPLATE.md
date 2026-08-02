@@ -3,6 +3,7 @@
 **Audience:** who runs this (e.g. any team member with deploy rights)
 **When:** the trigger for running it
 **Duration:** rough wall-clock estimate
+**Last verified:** YYYY-MM-DD — the last time someone ran these steps and they worked
 
 ## Prerequisites
 

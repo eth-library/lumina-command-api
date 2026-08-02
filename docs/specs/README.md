@@ -33,10 +33,14 @@ Two questions worth settling if module 02 is ever specced:
 
 ## Rules
 
+- **When a spec is required:** a new `/commands/*` endpoint, a new service in `app/services/`, or a
+  new transformer package. Not bug fixes, and not changes inside an already-specced boundary.
 - Filenames are `NN-modulename.md`, numbered monotonically; numbers are never reused.
 - Copy [`TEMPLATE.md`](TEMPLATE.md) to start.
 - A spec reaches `Accepted` only after review, and `Implemented` only when the acceptance criteria
   actually pass.
 - Update the status in this table when it changes — a spec marked `Accepted` that has already
   shipped tells the next reader nothing.
-- New modules do not get implemented without a spec. That is the point of the ladder.
+- **A spec is a living document.** When the module's intended behaviour changes, edit the spec in
+  place and bump its date; the number and file stay. Unlike an ADR, it describes what the module
+  *should do now*, not what was believed at a point in time.
