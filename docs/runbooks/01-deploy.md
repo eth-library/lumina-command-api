@@ -118,6 +118,20 @@ export API_KEY="…"          # INTERNAL_API_KEY, for the smoke test in Verifica
    arrive through `api.library.ethz.ch` with a different key and a CORS preflight
    (see [ADR 0004](../adr/0004-apigee-as-sole-public-ingress.md)).
 
+   **A new path prefix needs an Apigee proxy of its own before any consumer can reach it.** The
+   deploy succeeds and the endpoints answer on the Cloud Run URL regardless, so this is easy to
+   miss — the gap is only visible from the consumer's side. Currently mapped:
+
+   | Backend prefix | Apigee proxy |
+   |---|---|
+   | `/commands/*` | the original proxy |
+   | `/pipeline/*` | `lumina-pipeline` — read-only, GET only, 60 s response cache |
+
+   Apigee configuration is not version-controlled here; it lives in Apigee X. What the backend
+   requires of it is fixed, though: the consumer key arrives in `x-api-key`, and Apigee replaces
+   that header with `INTERNAL_API_KEY` before forwarding. Rotating that key is
+   [runbook 02](02-rotate-secrets.md).
+
 ## Rollback
 
 Cloud Run keeps previous revisions. Rolling back is a traffic change, not a rebuild, and takes
