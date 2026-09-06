@@ -27,15 +27,26 @@ export API_KEY="…"          # INTERNAL_API_KEY, for the smoke test in Verifica
    takes the project from your active configuration, and deploying to the wrong one is the most
    expensive mistake in this runbook.
    ```bash
+   gcloud config configurations list
    gcloud config get-value project
    ```
-   Expected: your intended `PROJECT_ID`.
+   Expected: `ethbib-lumina`. If it is not, activate the right configuration —
+   `gcloud config configurations activate lumina-command-api` — rather than only setting the
+   project, so account and region come with it.
+
+   **Tell-tale sign that you are in the wrong project:** the deploy asks to create an Artifact
+   Registry repository named `cloud-run-source-deploy`. In a project this service has been
+   deployed to before, that repository already exists and the question does not appear. Answer
+   `n` and check the project.
 
 2. **Confirm the secrets the revision will bind to exist.**
    ```bash
-   gcloud secrets list --filter="name~(OPENAI|PINECONE|INTERNAL)_API_KEY" --format="value(name)"
+   gcloud secrets list --format="value(name)" | grep API_KEY
    ```
    Expected: all three names. A missing secret produces a revision that fails to start.
+
+   (`--filter="name~(OPENAI|PINECONE|INTERNAL)_API_KEY"` does **not** work: gcloud's filter parser
+   reads the parentheses as its own grouping and fails with `Term operand expected`.)
 
 3. **Note the current revision**, so rollback does not require guesswork later.
    ```bash
