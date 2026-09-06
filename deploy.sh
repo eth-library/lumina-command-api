@@ -10,6 +10,6 @@ gcloud run deploy lumina-command-api \
   --memory=8Gi \
   --cpu=4 \
   --set-secrets=OPENAI_API_KEY=OPENAI_API_KEY:latest,PINECONE_API_KEY=PINECONE_API_KEY:latest,INTERNAL_API_KEY=INTERNAL_API_KEY:latest \
-  --update-env-vars=PREFECT_API_URL=http://lumina-box01.ethz.ch:4200/api
+  --update-env-vars=APP_ENV=production,PREFECT_API_URL=http://lumina-box01.ethz.ch:4200/api
 
 echo "Done!"
