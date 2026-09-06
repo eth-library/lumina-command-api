@@ -139,11 +139,14 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
 
 
-def _shape_run(run: dict, deployment_name: str | None = None) -> dict:
+def _shape_run(run: dict) -> dict:
+    """
+    One flow run. The deployment it belongs to is added by /pipeline/runs; nested
+    under a stage it would only repeat what the stage already says.
+    """
     return {
         "id": run.get("id"),
         "name": run.get("name"),
-        "deployment": deployment_name,
         "state": run.get("state_type"),
         "state_name": run.get("state_name"),
         "started_at": run.get("start_time"),
@@ -314,7 +317,7 @@ def _shape_stages(
                 "description": deployment.get("description"),
                 "schedule": _cron_schedules(deployment) or None,
                 "paused": deployment.get("paused"),
-                "last_run": _shape_run(run, deployment.get("name")) if run else None,
+                "last_run": _shape_run(run) if run else None,
             }
         )
     return stages
@@ -384,9 +387,7 @@ async def get_source(source_id: str) -> dict:
                 "description": unify_deployment.get("description"),
                 "schedule": _cron_schedules(unify_deployment) or None,
                 "paused": unify_deployment.get("paused"),
-                "last_run": _shape_run(unify_run, unify_deployment.get("name"))
-                if unify_run
-                else None,
+                "last_run": _shape_run(unify_run) if unify_run else None,
                 "metrics": unify_counts.get(source["unify_key"]),
             }
         )
@@ -453,7 +454,8 @@ async def get_runs(limit: int = RUNS_DEFAULT_LIMIT, states: list[str] | None = N
         entrypoint = entrypoint_by_id.get(run.get("deployment_id"))
         shaped.append(
             {
-                **_shape_run(run, deployment.get("name") if deployment else None),
+                **_shape_run(run),
+                "deployment": deployment.get("name") if deployment else None,
                 "source_id": source_by_entrypoint.get(entrypoint),
                 "stage": stage_by_entrypoint.get(entrypoint)
                 or CROSS_SOURCE_STAGES.get(entrypoint),

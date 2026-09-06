@@ -1,6 +1,6 @@
 # Endpoint documentation
 
-Derived, Confluence-facing reference pages — one per command endpoint, written in German for that
+Derived, Confluence-facing reference pages — one per endpoint, written in German for that
 audience. They have **no authority**: the code and the [ADRs](../adr/) are the source of truth, and
 these pages are created or updated **only when asked**, never as a step in the loop.
 
@@ -13,6 +13,8 @@ pasted into Confluence.
 | `POST /commands/transform-eth-udk-csv` | [transform-eth-udk-csv.md](transform-eth-udk-csv.md) |
 | `POST /commands/upsert-pinecone` | [upsert-pinecone.md](upsert-pinecone.md) |
 | `POST /commands/upsert-pinecone-polling`<br>`GET /commands/upsert-pinecone-polling/{job_id}/status` | [upsert-pinecone-polling.md](upsert-pinecone-polling.md) |
+| `GET /pipeline/sources`<br>`GET /pipeline/sources/{source_id}` | [pipeline-sources.md](pipeline-sources.md) |
+| `GET /pipeline/runs` | [pipeline-runs.md](pipeline-runs.md) |
 
 The utility endpoints (`/`, `/health`, `/version`) have no page of their own — they are covered in
 [SYSTEMOVERVIEW.md](../SYSTEMOVERVIEW.md), Abschnitt 4.
