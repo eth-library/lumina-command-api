@@ -79,18 +79,25 @@ export API_KEY="…"          # INTERNAL_API_KEY, for the smoke test in Verifica
 
 2. **Auth is wired** — a request with no key must be rejected:
    ```bash
-   curl -s -o /dev/null -w '%{http_code}\n' -X POST "$SERVICE_URL/commands/upsert-pinecone"
+   curl -s -o /dev/null -w '%{http_code}\n' -X POST -d '' "$SERVICE_URL/commands/upsert-pinecone"
    ```
    Expected: `401`. A `500` means `INTERNAL_API_KEY` did not reach the container — check the
    secret binding before going further. A `422` means the auth dependency is not applied.
 
+   **`-d ''` is required against Cloud Run.** A bare `curl -X POST` sends neither a body nor a
+   `Content-Length`, and Cloud Run's frontend rejects that with `411 Length Required` before the
+   request ever reaches FastAPI. Locally, Uvicorn accepts it and returns `401`, so this check
+   silently means different things in the two environments unless the empty body is sent.
+
 3. **The key that Apigee will send is the key the service expects:**
    ```bash
-   curl -s -o /dev/null -w '%{http_code}\n' -X POST "$SERVICE_URL/commands/upsert-pinecone" \
+   API_KEY="$(gcloud secrets versions access latest --secret=INTERNAL_API_KEY)"
+   curl -s -o /dev/null -w '%{http_code}\n' -X POST -d '' "$SERVICE_URL/commands/upsert-pinecone" \
      -H "x-api-key: $API_KEY"
    ```
    Expected: `422` (authenticated, then rejected for missing form fields — which is the pass
-   condition here). `401` means the deployed key differs from `$API_KEY`.
+   condition here). `401` means the deployed key differs from `$API_KEY`; reading the key from
+   Secret Manager as above removes that as a source of confusion.
 
 4. **The Prefect façade can reach the Engine** — this is the one check that exercises a network
    path Cloud Run does not otherwise use ([ADR 0007](../adr/0007-prefect-read-only-proxy.md)):
