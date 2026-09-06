@@ -86,13 +86,19 @@ We will add a **read-only façade** over the Prefect API to `lumina-command-api`
   a wrong one, but the coupling is real and invisible from this repository. The durable fix is for
   `lumina-engine` to publish these counts as Prefect artifacts; until then this is technical debt
   we are knowingly taking on.
-- **Cloud Run must be able to reach an ETH-internal host, and that is not yet proven.** The
-  endpoints were developed and verified from inside the ETH network, which says nothing about a
-  Cloud Run revision. The first deploy is therefore also the test: step 4 of
-  [runbook 01](../runbooks/01-deploy.md) calls `/pipeline/sources` against the deployed service. If
-  it returns 502, the decision to host the façade on Cloud Run has to be revisited — a VPC
-  connector or an internally-hosted deployment would each warrant its own ADR. The blast radius of
-  being wrong is contained: only `/pipeline/*` fails, the rest of the API is unaffected.
+- **Cloud Run must be able to reach an ETH-internal host.** The endpoints were developed and
+  verified from inside the ETH network, which said nothing about a Cloud Run revision. The first
+  deploy was therefore also the test: step 4 of [runbook 01](../runbooks/01-deploy.md) calls
+  `/pipeline/sources` against the deployed service. Had it returned 502, the decision to host the
+  façade on Cloud Run would have had to be revisited — a VPC connector or an internally-hosted
+  deployment, each warranting its own ADR. The blast radius of being wrong was contained: only
+  `/pipeline/*` fails, the rest of the API is unaffected.
+
+  > **Resolved 2026-09-06.** The first deploy to `ethbib-lumina` answered `200` in 0.55 s from
+  > `europe-west6`, with no VPC connector and no ingress change. The risk above did not
+  > materialise. It stays on record because nothing guarantees the path: it is not a configured,
+  > documented route but an incidental one, and a firewall or network change on either side would
+  > break `/pipeline/*` without warning. Runbook 01 step 4 remains the check on every deploy.
 - **Apigee must be configured for `/pipeline/*` separately.** Until it is, the endpoints exist but
   no consumer can reach them. This is the drift that [0004](0004-apigee-as-sole-public-ingress.md)
   already records: the contract lives both in FastAPI's generated OpenAPI document and in Apigee.
