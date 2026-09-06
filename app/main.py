@@ -3,6 +3,7 @@ import logging
 from fastapi import FastAPI
 from app.config import Config
 from app.routers.commands import router as commands_router
+from app.routers.pipeline import router as pipeline_router
 
 logging.basicConfig(
     level=Config.LOG_LEVEL.upper(),
@@ -17,6 +18,7 @@ app = FastAPI(
 
 # ✅ DANN Router registrieren
 app.include_router(commands_router)
+app.include_router(pipeline_router)
 
 
 @app.get("/")

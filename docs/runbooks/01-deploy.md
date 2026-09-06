@@ -49,8 +49,8 @@ export API_KEY="…"          # INTERNAL_API_KEY, for the smoke test in Verifica
    ./deploy.sh
    ```
    This runs `gcloud run deploy --source .`: Buildpacks builds the image, pushes it, creates a new
-   revision with 8 GiB / 4 vCPU / 3600 s timeout, binds the three secrets at `:latest`, and routes
-   100 % of traffic to it.
+   revision with 8 GiB / 4 vCPU / 3600 s timeout, binds the three secrets at `:latest`, sets
+   `PREFECT_API_URL` as a plain environment variable, and routes 100 % of traffic to it.
 
    Expected tail: `Service [lumina-command-api] revision [...] has been deployed and is serving
    100 percent of traffic.`
@@ -81,12 +81,21 @@ export API_KEY="…"          # INTERNAL_API_KEY, for the smoke test in Verifica
    Expected: `422` (authenticated, then rejected for missing form fields — which is the pass
    condition here). `401` means the deployed key differs from `$API_KEY`.
 
-4. **No startup errors in the logs:**
+4. **The Prefect façade can reach the Engine** — this is the one check that exercises a network
+   path Cloud Run does not otherwise use ([ADR 0007](../adr/0007-prefect-read-only-proxy.md)):
+   ```bash
+   curl -s -o /dev/null -w '%{http_code}\n' "$SERVICE_URL/pipeline/sources" \
+     -H "x-api-key: $API_KEY"
+   ```
+   Expected: `200`. A `502` means the revision cannot reach `lumina-box01.ethz.ch:4200` — the
+   backend is otherwise healthy, so the rest of the API keeps working; see Troubleshooting.
+
+5. **No startup errors in the logs:**
    ```bash
    gcloud run services logs read "$SERVICE" --region "$REGION" --limit 50
    ```
 
-5. **End-to-end through Apigee**, if the change touches the request or response contract — a
+6. **End-to-end through Apigee**, if the change touches the request or response contract — a
    backend that passes every check above can still be broken for real consumers, because they
    arrive through `api.library.ethz.ch` with a different key and a CORS preflight
    (see [ADR 0004](../adr/0004-apigee-as-sole-public-ingress.md)).
@@ -118,3 +127,5 @@ version that was `:latest` when *it* was created, so a rollback may resurrect th
 | Build fails resolving dependencies | `requirements.txt` pin unavailable, or buildpack picked a Python version a dependency does not support | Read the Cloud Build log URL printed by the deploy |
 | Deploy succeeds but serves old behaviour | Uncommitted or unsaved files; `--source .` uploads the working directory | `git status`, then redeploy |
 | `413` or a truncated upload from a client | Cloud Run's ~32 MB request cap ([ADR 0001](../adr/0001-fastapi-on-cloud-run.md)) | Client must gzip the payload |
+| `502` from `/pipeline/*` only | Cloud Run cannot reach `lumina-box01.ethz.ch:4200`, or Prefect is down there | Check the Engine host first; if the host is up but unreachable from Cloud Run, the network path needs a decision of its own ([ADR 0007](../adr/0007-prefect-read-only-proxy.md)) |
+| `/pipeline/sources` returns `"records": null` everywhere | A log message was reworded in `lumina-engine`, so no pattern matches | Compare the flow-run log against the patterns in [spec 04](../specs/04-prefect-pipeline-status.md) |

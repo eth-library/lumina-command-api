@@ -13,3 +13,6 @@ class Config:
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
     PINECONE_API_KEY = os.getenv("PINECONE_API_KEY", "")
     INTERNAL_API_KEY = os.getenv("INTERNAL_API_KEY", "")
+
+    # Lumina Engine — Prefect server (read-only, unauthenticated, no secret to protect)
+    PREFECT_API_URL = os.getenv("PREFECT_API_URL", "http://lumina-box01.ethz.ch:4200/api")

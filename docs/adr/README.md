@@ -11,8 +11,9 @@ disagree, the table wins — fix the document.
 | [0004](0004-apigee-as-sole-public-ingress.md) | Apigee X as the sole public entry point | Accepted | 2026-04-22 |
 | [0005](0005-shared-secret-internal-api-key.md) | Shared-secret internal API key for `/commands/*` | Accepted | 2026-04-22 |
 | [0006](0006-secrets-in-secret-manager.md) | Secrets in Secret Manager, injected as env vars at deploy time | Accepted | 2026-04-22 |
+| [0007](0007-prefect-read-only-proxy.md) | A read-only façade over the Lumina Engine's Prefect server | Accepted | 2026-09-06 |
 
-Next number: **0007**.
+Next number: **0008**.
 
 ## When to write one
 

@@ -10,8 +10,9 @@ Status ladder: `Stub` → `Draft` → `Accepted` → `Implemented`.
 | 01 | ETH UDK transformation pipeline | *unspecced* | — | [`app/transformers/eth_udk/`](../../app/transformers/eth_udk/), [`transform_eth_udk.py`](../../app/services/transform_eth_udk.py) |
 | 02 | Pinecone embedding & upsert | *unspecced* | — | [`pinecone_upsert.py`](../../app/services/pinecone_upsert.py) |
 | 03 | API key authentication | *unspecced* | — | [`auth.py`](../../app/auth.py) |
+| 04 | Prefect pipeline status | Implemented | [`04-prefect-pipeline-status.md`](04-prefect-pipeline-status.md) | [`prefect_status.py`](../../app/services/prefect_status.py), [`pipeline.py`](../../app/routers/pipeline.py) |
 
-Next number: **04**.
+Next number: **05**.
 
 ## Why three modules are marked *unspecced*
 
