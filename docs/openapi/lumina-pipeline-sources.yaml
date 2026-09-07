@@ -30,6 +30,13 @@ info:
     Research Collection parsed 306,939 records but contributed 293,374 at unify.
     This API does not reconcile the two into one number.
 
+    A figure may also cover more than one source. `Merge: ALMA` folds SLSP ETH and
+    SLSP Network into one record per work before the unify stage counts them, so
+    those two sources share one unify figure — larger than either one's parse count,
+    and reported identically under both. Every `metrics` block therefore states in
+    `covers` which sources its figure applies to. **Check it before putting two
+    stages side by side.**
+
     ## Availability
 
     These endpoints read live from the Prefect server. When it is unreachable they
@@ -286,10 +293,17 @@ components:
 
     StageMetrics:
       type: object
-      required: [records, matched_line]
+      required: [records, matched_line, covers]
       description: |
         Figure read from this stage's own log. `null` when no matching line was
         found.
+
+        **Read `covers` before comparing two stages.** A figure does not always
+        belong to one source: `Merge: ALMA` folds SLSP ETH and SLSP Network into one
+        record per work before the unify stage counts them, so the unify figure of
+        those two sources covers both and is reported identically under each. It is
+        larger than either source's own parse count, and presenting it as one
+        source's contribution would be wrong.
       properties:
         records:
           type: integer
@@ -299,6 +313,15 @@ components:
           type: string
           description: The log line the figure came from — the evidence for it.
           example: "Loading rc: 293,374 rows in 1 batch(es)..."
+        covers:
+          type: array
+          minItems: 1
+          description: |
+            The sources this figure applies to. One entry for a per-source stage; for
+            the unify stage of `slsp_eth` and `slsp_network`, both of them.
+          items:
+            $ref: "#/components/schemas/SourceId"
+          example: ["research_collection"]
 
     Run:
       type: object

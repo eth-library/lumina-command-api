@@ -83,6 +83,15 @@ CROSS_SOURCE_STAGES: dict[str, str] = {
 # The flow whose log carries the per-source row counts at unify time.
 UNIFY_ENTRYPOINT = "merge_sources"
 
+# Which sources share one unify figure. 'Merge: ALMA' folds SLSP ETH and SLSP
+# Network into one record per work before unify runs, so the log's `alma` line
+# counts both of them together — it is larger than either source's parse count
+# and identical under both. Every metrics block therefore names the sources its
+# figure covers, so no client has to know this.
+UNIFY_GROUPS: dict[str, list[str]] = {}
+for _source_id, _source in SOURCES.items():
+    UNIFY_GROUPS.setdefault(_source["unify_key"], []).append(_source_id)
+
 # Record counts exist only as free text in flow-run logs — this Prefect server stores
 # no artifacts and no task runs. Each pattern is bound to one kind of flow so a line
 # from an unrelated flow can never be misread.
@@ -374,12 +383,14 @@ async def get_source(source_id: str) -> dict:
     stages = _shape_stages(deployments, source, last_runs)
     for stage in stages:
         entrypoint = source["stages"][stage["stage"]]
-        stage["metrics"] = (
-            _parse_stage_records(logs[entrypoint]) if entrypoint in logs else None
-        )
+        metrics = _parse_stage_records(logs[entrypoint]) if entrypoint in logs else None
+        # A per-source stage counts this source alone.
+        stage["metrics"] = {**metrics, "covers": [source_id]} if metrics else None
 
     if unify_deployment:
         unify_run = last_runs.get(UNIFY_ENTRYPOINT)
+        # The unify figure may cover more than one source — see UNIFY_GROUPS.
+        unify_metrics = unify_counts.get(source["unify_key"])
         stages.append(
             {
                 "stage": "unify",
@@ -388,7 +399,12 @@ async def get_source(source_id: str) -> dict:
                 "schedule": _cron_schedules(unify_deployment) or None,
                 "paused": unify_deployment.get("paused"),
                 "last_run": _shape_run(unify_run) if unify_run else None,
-                "metrics": unify_counts.get(source["unify_key"]),
+                "metrics": {
+                    **unify_metrics,
+                    "covers": UNIFY_GROUPS[source["unify_key"]],
+                }
+                if unify_metrics
+                else None,
             }
         )
 

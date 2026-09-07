@@ -176,11 +176,13 @@ Gleiche Struktur, zusätzlich pro Stufe ein `metrics`-Block und die Stufe `unify
       { "stage": "parse", "deployment": "Parse: RC",
         "last_run": { "state": "COMPLETED", "...": "..." },
         "metrics": { "records": 306939,
-                     "matched_line": "Total records: 306939" } },
+                     "matched_line": "Total records: 306939",
+                     "covers": ["research_collection"] } },
       { "stage": "unify", "deployment": "Merge: Sources",
         "last_run": { "state": "COMPLETED", "...": "..." },
         "metrics": { "records": 293374,
-                     "matched_line": "Loading rc: 293,374 rows in 1 batch(es)..." } }
+                     "matched_line": "Loading rc: 293,374 rows in 1 batch(es)...",
+                     "covers": ["research_collection"] } }
     ]
   }
 }
@@ -192,8 +194,25 @@ wer der Zahl nicht traut, sieht sofort, worauf sie beruht.
 > **Parse- und Unify-Zahl dürfen auseinanderlaufen, und sie tun es.** Im Lauf vom 01.09.2026 hat
 > Research Collection **306'939** Datensätze geparst, aber nur **293'374** in die
 > Zusammenführung eingebracht. Diese API rechnet die beiden Zahlen bewusst **nicht** gegeneinander
-> auf und wählt keine als „die richtige“. Jede Zahl trägt ihre Herkunft; die Interpretation ist
+> auf und wählt keine als „die richtige”. Jede Zahl trägt ihre Herkunft; die Interpretation ist
 > Sache der Fachstelle.
+
+> **Eine Zahl kann für zwei Quellen gelten — `covers` sagt, für welche.** `Merge: ALMA` führt SLSP
+> ETH und SLSP Network zu einem Datensatz pro Werk zusammen, **bevor** die Unify-Stufe zählt. Beide
+> Quellen teilen sich deshalb eine Unify-Zahl, die grösser ist als die Parse-Zahl jeder einzelnen:
+
+| Quelle | parse | unify | `covers` |
+|---|---:|---:|---|
+| `slsp_eth` | 4'427'159 | 20'772'692 | `[“slsp_eth”, “slsp_network”]` |
+| `slsp_network` | 18'632'933 | 20'772'692 | `[“slsp_eth”, “slsp_network”]` |
+| `epics` | 1'085'761 | 1'085'761 | `[“epics”]` |
+| `erara` | 45'250 | 45'250 | `[“erara”]` |
+| `research_collection` | 306'939 | 293'374 | `[“research_collection”]` |
+| `semantic_scholar` | 237'167'341 | 237'167'341 | `[“semantic_scholar”]` |
+
+Stand 07.09.2026; die Zahlen ändern sich mit jedem Pipeline-Lauf, die `covers`-Spalte nicht. Wer
+Parse gegen Unify stellt, muss `covers` auswerten — sonst zeigt die Darstellung SLSP ETH von 4,4
+auf 20,8 Millionen „wachsen” und dieselben 20,8 Millionen ein zweites Mal unter SLSP Network.
 
 ## Woher die Zahlen kommen
 

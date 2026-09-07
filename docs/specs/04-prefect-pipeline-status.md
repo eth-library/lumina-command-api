@@ -40,6 +40,13 @@ and without anyone hand-maintaining a list of what the Engine ingests.
       their own count from their own log — two separate numbers, never silently reconciled into
       one. They legitimately differ: on 2026-09-01 Research Collection parsed 306'939 records but
       contributed 293'374 at unify.
+- [ ] Every `metrics` block names in `covers` the sources its figure applies to. For a per-source
+      stage that is the source itself; for the unify stage of `slsp_eth` and `slsp_network` it is
+      **both**, because `Merge: ALMA` folds the two Alma zones into one record per work before
+      unify counts them.
+- [ ] Given `GET /pipeline/sources/slsp_eth` and `.../slsp_network`, then both unify stages report
+      the same `records` value and the same `covers`. A client can therefore tell from the response
+      alone that the figure is shared, and must not present it as either source's own contribution.
 - [ ] When the log parser finds no matching line, then the field is `null` — never `0`, never an
       estimate, never a value carried over from another stage.
 - [ ] Given `GET /pipeline/runs?state=RUNNING`, then only runs whose state is `RUNNING` are
@@ -122,10 +129,12 @@ GET /pipeline/sources/{source_id}
           {"stage": "harvest", ..., "metrics": null},
           {"stage": "parse", ...,
            "metrics": {"records": 306939,
-                       "matched_line": "Total records: 306939"}},
+                       "matched_line": "Total records: 306939",
+                       "covers": ["research_collection"]}},
           {"stage": "unify", "deployment": "Merge: Sources", ...,
            "metrics": {"records": 293374,
-                       "matched_line": "Loading rc: 293,374 rows in 1 batch(es)..."}}
+                       "matched_line": "Loading rc: 293,374 rows in 1 batch(es)...",
+                       "covers": ["research_collection"]}}
         ]
       }
     }
@@ -217,6 +226,28 @@ ascending. Every pattern above matches within the first dozen lines of its flow.
 Deliberately **not** parsed: the `doi: 566,389 pairs` / `mmsid: 36,423 pairs` lines from
 `Deduplicate: Unified`. Those are deduplication key statistics, not source holdings; presenting
 them as record counts would be wrong.
+
+### One unify figure can belong to two sources
+
+`Merge: Sources` logs one line per *file* it loads, not per source. SLSP ETH and SLSP Network have
+already been folded into one record per work by `Merge: ALMA` at that point, so the log carries a
+single `Loading alma:` line covering both — larger than either source's parse count, and reported
+identically under both sources.
+
+That is why every `metrics` block carries `covers`. Without it a client comparing parse against
+unify would show SLSP ETH growing from 4.4 M to 20.8 M between two stages, and would show the same
+20.8 M again under SLSP Network. The figure is correct; what it counts is simply not one source.
+
+| Source | parse | unify | `covers` |
+|---|---:|---:|---|
+| `slsp_eth` | 4'427'159 | 20'772'692 | `["slsp_eth", "slsp_network"]` |
+| `slsp_network` | 18'632'933 | 20'772'692 | `["slsp_eth", "slsp_network"]` |
+| `epics` | 1'085'761 | 1'085'761 | `["epics"]` |
+| `erara` | 45'250 | 45'250 | `["erara"]` |
+| `research_collection` | 306'939 | 293'374 | `["research_collection"]` |
+| `semantic_scholar` | 237'167'341 | 237'167'341 | `["semantic_scholar"]` |
+
+Values as of 2026-09-07 and they move with every pipeline pass; the `covers` column does not.
 
 ## Known limitations
 
