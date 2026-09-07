@@ -69,7 +69,7 @@ Four kinds of document. Formats, templates, and index rules live in [`docs/READM
 | `docs/adr/NNNN-kebab-title.md` | **Why** the system looks like it does | Before the decision is implemented |
 | `docs/specs/NN-modulename.md` | **What** gets built | Before the module is implemented |
 | `docs/runbooks/NN-task.md` | **How** to run, deploy, recover | In the same commit as the operational change |
-| `README.md`, `docs/SYSTEMOVERVIEW.md`, `docs/endpoints/` | **Summary** for readers — derived, no authority | On demand only |
+| `README.md`, `docs/SYSTEMOVERVIEW.md`, `docs/endpoints/`, `docs/openapi/` | **Summary** for readers — derived, no authority | On demand only |
 
 **ADR triggers** — adopt or replace a framework, runtime, hosting platform, or database · change how
 auth, authorization, or secrets work · add an integration that crosses a trust boundary · establish a
@@ -80,11 +80,14 @@ refactors that keep public contracts intact.
 transformer package. Not bug fixes, and not changes inside an already-specced boundary.
 
 **Derived docs** — `README.md` is the GitHub-facing project summary and developer onboarding;
-[`docs/SYSTEMOVERVIEW.md`](docs/SYSTEMOVERVIEW.md) is the internal Confluence overview and
-[`docs/endpoints/`](docs/endpoints/) holds one Confluence page per command endpoint. All of them
-summarize the documents above and the code. They link to procedures rather than restating them, they
-are never a source of truth, and they are created or updated **only when asked** — never as a step in
-the loop.
+[`docs/SYSTEMOVERVIEW.md`](docs/SYSTEMOVERVIEW.md) is the internal Confluence overview,
+[`docs/endpoints/`](docs/endpoints/) holds one Confluence page per endpoint, and
+[`docs/openapi/`](docs/openapi/) holds the machine-readable contract as consumers see it through
+Apigee. All of them summarize the documents above and the code. They link to procedures rather than
+restating them, they are never a source of truth, and they are created or updated **only when
+asked** — never as a step in the loop. The one exception: `docs/openapi/` is published to the
+developer portal, so when an endpoint's contract changes it is updated in the same commit, like a
+runbook.
 
 **ADRs are immutable, specs are living.** Never edit an accepted ADR's Decision section — supersede it
 with a new ADR that references the predecessor. A spec is edited in place as the module changes; its

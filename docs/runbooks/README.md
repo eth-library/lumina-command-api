@@ -8,8 +8,9 @@ One procedure per file, written so someone who did not build the system can exec
 | [02](02-rotate-secrets.md) | Rotate a secret | Scheduled rotation; suspected key leak; lost laptop |
 | [03](03-gcp-project-bootstrap.md) | Bootstrap a GCP project | Standing up a new environment from nothing |
 | [04](04-run-udk-pipeline.md) | Run the ETH UDK pipeline end to end | A refreshed UDK export needs processing and indexing |
+| [05](05-apigee-proxy.md) | Publish an endpoint through Apigee X | A new backend path prefix needs to reach consumers; a proxy's target, key, or documentation changes |
 
-Next number: **05**.
+Next number: **06**.
 
 ## Rules
 
@@ -24,7 +25,8 @@ Next number: **05**.
   describes last quarter's process is worse than no runbook, because it will be followed.
 - Every runbook carries a **Last verified** date — set it when you actually run the steps end to
   end. `01`–`04` carry none: they were reconstructed from the code and scripts on 2026-07-31 and
-  have not been executed as written.
+  have not been executed as written. `05` carries one, but it is partial — the date says exactly
+  how far the verification went, which is the point of the field.
 
 ## Conventions used throughout
 

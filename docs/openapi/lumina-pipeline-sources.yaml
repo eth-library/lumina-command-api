@@ -1,0 +1,381 @@
+openapi: 3.0.3
+
+info:
+  title: Lumina Pipeline — Datenquellen
+  version: "1.0.0"
+  description: |
+    Read-only-Zugriff auf die sechs Datenquellen der **Lumina Engine**.
+
+    Die Lumina Engine führt Metadaten aus sechs bibliografischen und
+    wissenschaftlichen Quellsystemen in einem gemeinsamen Datenmodell zusammen und
+    orchestriert die Verarbeitung mit Prefect. Diese API übersetzt Prefects Sicht in
+    die Begriffe **Quelle**, **Stufe** und **letzter Lauf**.
+
+    ## Pipeline-Stufen
+
+    | Stufe | Bedeutung |
+    |-------|-----------|
+    | `harvest` | Abruf der Quelldaten und Ablage als Rohdaten |
+    | `parse` | Transformation in das gemeinsame Lumina Core Schema |
+    | `hierarchy` | Auflösung hierarchischer Beziehungen (nur E-Rara) |
+    | `unify` | Normalisierung und Zusammenführung aller Quellen |
+
+    ## Zu den Bestandszahlen
+
+    Der Prefect-Server der Lumina Engine speichert keine strukturierten Kennzahlen.
+    Die Zahlen in `records` und `metrics` stammen aus den Logzeilen des jeweiligen
+    Laufs; jede Angabe trägt darum ihre Herkunft mit sich. Findet sich keine
+    passende Zeile, ist der Wert `null` — **nie `0`, nie geschätzt**.
+
+    Parse- und Unify-Zahl einer Quelle dürfen abweichen und tun das auch: Research
+    Collection parste am 01.09.2026 306'939 Datensätze, brachte aber 293'374 in die
+    Zusammenführung ein. Diese API rechnet die Werte nicht gegeneinander auf.
+
+    ## Verfügbarkeit
+
+    Die Endpoints lesen live aus dem Prefect-Server. Ist dieser gestört, antworten
+    sie mit `502`, während die übrige Lumina Command API gesund bleibt. Antworten
+    werden im Gateway 60 Sekunden zwischengespeichert.
+  contact:
+    name: ETH-Bibliothek — Lumina
+    email: giuliage@ethz.ch
+
+servers:
+  - url: https://api.library.ethz.ch/lumina/v1/pipeline
+    description: Produktion
+
+security:
+  - ConsumerKey: []
+
+tags:
+  - name: Datenquellen
+    description: Die sechs Quellsysteme der Lumina Engine
+
+paths:
+
+  /sources:
+    get:
+      tags: [Datenquellen]
+      summary: Alle Datenquellen auflisten
+      description: |
+        Liefert alle sechs Quellen mit ihren Pipeline-Stufen, dem letzten Lauf je
+        Stufe und der beim letzten Parse-Lauf beobachteten Bestandszahl.
+
+        Für die Übersichtsdarstellung gedacht. Detailkennzahlen pro Stufe liefert
+        `GET /sources/{source_id}`.
+      operationId: listSources
+      responses:
+        "200":
+          description: Die sechs Quellen.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SourceList"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "502": { $ref: "#/components/responses/PrefectUnavailable" }
+
+  /sources/{source_id}:
+    get:
+      tags: [Datenquellen]
+      summary: Eine Datenquelle im Detail
+      description: |
+        Wie die Liste, zusätzlich mit einem `metrics`-Block **pro Stufe** und der
+        gemeinsamen Stufe `unify`. Jede Kennzahl nennt in `matched_line` die
+        Logzeile, aus der sie stammt.
+      operationId: getSource
+      parameters:
+        - name: source_id
+          in: path
+          required: true
+          description: Kennung der Quelle.
+          schema:
+            $ref: "#/components/schemas/SourceId"
+      responses:
+        "200":
+          description: Die Quelle mit Kennzahlen je Stufe.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SourceDetail"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404":
+          description: Unbekannte Quellen-Kennung.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example:
+                detail: >-
+                  Unknown source 'gibtsnicht'. Known: slsp_eth, slsp_network, epics,
+                  erara, research_collection, semantic_scholar.
+        "502": { $ref: "#/components/responses/PrefectUnavailable" }
+
+components:
+
+  securitySchemes:
+    ConsumerKey:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: |
+        Der Consumer-Key aus dem Apigee-Entwicklerportal. Nicht zu verwechseln mit
+        dem internen Schlüssel des Backends — den setzt das Gateway selbst ein, er
+        verlässt Apigee nie.
+
+  responses:
+    Unauthorized:
+      description: Consumer-Key fehlt oder ist ungültig.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          example:
+            detail: Missing API key.
+    PrefectUnavailable:
+      description: |
+        Der Prefect-Server der Lumina Engine ist nicht erreichbar. Kein Fehler
+        dieser API — die übrigen Endpoints funktionieren weiter.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          example:
+            detail: "Prefect API unreachable: All connection attempts failed"
+
+  schemas:
+
+    SourceId:
+      type: string
+      description: Kennung einer Datenquelle.
+      enum:
+        - slsp_eth
+        - slsp_network
+        - epics
+        - erara
+        - research_collection
+        - semantic_scholar
+      example: erara
+
+    SourceList:
+      type: object
+      required: [fetched_at, sources]
+      properties:
+        fetched_at:
+          $ref: "#/components/schemas/FetchedAt"
+        sources:
+          type: array
+          description: Immer genau sechs Einträge.
+          items: { $ref: "#/components/schemas/Source" }
+
+    SourceDetail:
+      type: object
+      required: [fetched_at, source]
+      properties:
+        fetched_at:
+          $ref: "#/components/schemas/FetchedAt"
+        source:
+          allOf:
+            - $ref: "#/components/schemas/SourceBase"
+            - type: object
+              required: [stages]
+              properties:
+                stages:
+                  type: array
+                  items: { $ref: "#/components/schemas/StageWithMetrics" }
+
+    SourceBase:
+      type: object
+      required: [id, label, description]
+      properties:
+        id:
+          $ref: "#/components/schemas/SourceId"
+        label:
+          type: string
+          description: Anzeigename der Quelle.
+          example: E-Rara
+        description:
+          type: string
+          nullable: true
+          description: |
+            Beschreibung aus dem Prefect-Deployment des Harvesters, unverändert
+            übernommen. Wird in der Lumina Engine gepflegt, nicht hier — englisch.
+          example: "e-rara METS over OAI-PMH (set `zut`) → erara_*."
+
+    Source:
+      allOf:
+        - $ref: "#/components/schemas/SourceBase"
+        - type: object
+          required: [records, stages]
+          properties:
+            records:
+              nullable: true
+              allOf:
+                - $ref: "#/components/schemas/RecordCount"
+              description: |
+                Bestandszahl aus dem Log des letzten Parse-Laufs. `null`, wenn die
+                Stufe nie lief oder keine passende Logzeile gefunden wurde.
+            stages:
+              type: array
+              items: { $ref: "#/components/schemas/Stage" }
+
+    RecordCount:
+      type: object
+      required: [count, origin, flow, measured_at]
+      properties:
+        count:
+          type: integer
+          format: int64
+          minimum: 0
+          example: 45250
+        origin:
+          type: string
+          description: Herkunftsart des Werts. Derzeit immer `flow-run-log`.
+          enum: [flow-run-log]
+        flow:
+          type: string
+          description: Prefect-Flow, dessen Log die Zahl geliefert hat.
+          example: "Parse: ERARA"
+        measured_at:
+          type: string
+          format: date-time
+          description: Endzeit des Laufs — der Stand, auf den sich die Zahl bezieht.
+          example: "2026-09-06T00:00:33.620826Z"
+
+    Stage:
+      type: object
+      required: [stage, deployment, description, schedule, paused, last_run]
+      properties:
+        stage:
+          type: string
+          enum: [harvest, parse, hierarchy, unify]
+          example: parse
+        deployment:
+          type: string
+          description: Name des Prefect-Deployments.
+          example: "Parse: ERARA"
+        description:
+          type: string
+          nullable: true
+          example: "METS/MODS → erara/parsed/erara.parquet (hierarchy writes `ready`)."
+        schedule:
+          type: array
+          nullable: true
+          description: |
+            Cron-Ausdrücke des Deployments, oder `null`. Die Quellstufen haben
+            keinen eigenen Zeitplan — geplant ist nur der DAG-Orchestrator
+            (`0 0 * * 0`, sonntags um Mitternacht).
+          items: { type: string }
+          example: null
+        paused:
+          type: boolean
+          description: Ob das Deployment in Prefect pausiert ist.
+          example: false
+        last_run:
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/Run"
+          description: |
+            Der zuletzt **gestartete** Lauf dieser Stufe. `null` bedeutet, dass die
+            Stufe noch nie lief — ein regulärer Zustand, kein Fehler.
+
+    StageWithMetrics:
+      allOf:
+        - $ref: "#/components/schemas/Stage"
+        - type: object
+          required: [metrics]
+          properties:
+            metrics:
+              nullable: true
+              allOf:
+                - $ref: "#/components/schemas/StageMetrics"
+
+    StageMetrics:
+      type: object
+      required: [records, matched_line]
+      description: |
+        Aus dem Log dieser Stufe gelesene Kennzahl. `null`, wenn keine passende
+        Zeile gefunden wurde.
+      properties:
+        records:
+          type: integer
+          format: int64
+          example: 293374
+        matched_line:
+          type: string
+          description: Die Logzeile, aus der die Zahl stammt — der Beleg.
+          example: "Loading rc: 293,374 rows in 1 batch(es)..."
+
+    Run:
+      type: object
+      required:
+        [id, name, state, state_name, started_at, ended_at, duration_seconds,
+         run_count, next_scheduled_start_time]
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 5a5620ae-ad17-46ef-955b-26b1bb2de87f
+        name:
+          type: string
+          description: |
+            Der von Prefect vergebene Zufallsname — unter diesem Namen ist der Lauf
+            auch in der Prefect-Oberfläche zu finden.
+          example: competent-weasel
+        state:
+          $ref: "#/components/schemas/RunState"
+        state_name:
+          type: string
+          description: Anzeigename desselben Zustands.
+          example: Completed
+        started_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: "`null` bei geplanten, noch nicht gestarteten Läufen."
+          example: "2026-09-06T00:00:07.110239Z"
+        ended_at:
+          type: string
+          format: date-time
+          nullable: true
+          example: "2026-09-06T00:00:33.620826Z"
+        duration_seconds:
+          type: number
+          format: double
+          description: Bei laufenden Läufen die bisherige, sonst die Gesamtlaufzeit.
+          example: 26.510587
+        run_count:
+          type: integer
+          description: Ausführungsversuche. Ein Wert über 1 heisst, Prefect hat wiederholt.
+          example: 1
+        next_scheduled_start_time:
+          type: string
+          format: date-time
+          nullable: true
+          example: null
+
+    RunState:
+      type: string
+      description: Zustandstyp des Laufs in Prefect.
+      enum:
+        - SCHEDULED
+        - PENDING
+        - RUNNING
+        - COMPLETED
+        - FAILED
+        - CANCELLED
+        - CANCELLING
+        - CRASHED
+        - PAUSED
+      example: COMPLETED
+
+    FetchedAt:
+      type: string
+      format: date-time
+      description: |
+        Zeitpunkt der Abfrage im Backend. Bei einem Treffer im Gateway-Cache bis zu
+        60 Sekunden alt.
+      example: "2026-09-06T08:54:09Z"
+
+    Error:
+      type: object
+      required: [detail]
+      properties:
+        detail:
+          type: string

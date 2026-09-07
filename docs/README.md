@@ -7,7 +7,7 @@ Four kinds of document, four purposes. Don't mix them.
 | [`adr/`](adr/) | **Why** the system looks like it does | Before the decision is implemented |
 | [`specs/`](specs/) | **What** gets built | Before the module is implemented |
 | [`runbooks/`](runbooks/) | **How** to run, deploy, recover | In the same commit as the operational change |
-| [`../README.md`](../README.md), `SYSTEMOVERVIEW.md`, [`endpoints/`](endpoints/) | **Summary** for readers | On demand only |
+| [`../README.md`](../README.md), `SYSTEMOVERVIEW.md`, [`endpoints/`](endpoints/), [`openapi/`](openapi/) | **Summary** for readers | On demand only |
 
 The first three each have a `README.md` index — the source of truth for what exists and its
 status — and a `TEMPLATE.md` to copy. Adding a document without updating the index leaves the
@@ -19,10 +19,16 @@ file stay.
 
 **Derived docs.** [`../README.md`](../README.md) is the GitHub-facing project summary and
 developer onboarding; [`SYSTEMOVERVIEW.md`](SYSTEMOVERVIEW.md) is the internal Confluence
-overview and [`endpoints/`](endpoints/) holds one Confluence page per command endpoint — both
-written in German for that audience. All of them summarize the three kinds above and the code —
-they have no authority of their own, they link to procedures rather than restating them, and they
-are created or updated only when asked. They are not a step in the loop.
+overview and [`endpoints/`](endpoints/) holds one Confluence page per endpoint — both written in
+German for that audience. [`openapi/`](openapi/) holds the machine-readable contract as consumers
+see it through Apigee, one document per proxy, published to the developer portal by
+[runbook 05](runbooks/05-apigee-proxy.md). All of them summarize the three kinds above and the
+code — they have no authority of their own, they link to procedures rather than restating them,
+and they are created or updated only when asked. They are not a step in the loop.
+
+`openapi/` is derived like the rest, but with one obligation the others do not carry: what it says
+is uploaded to the portal and consumers build against it. When an endpoint's contract changes, the
+document changes in the same commit — the same rule runbooks follow, for the same reason.
 
 **Precedence:** an ADR beats everything. On scope, a spec's acceptance criteria beat
 `CLAUDE.md`. On process and style, `CLAUDE.md` wins. On a conflict, fix the document rather
