@@ -211,7 +211,15 @@ components:
         duration_seconds:
           type: number
           format: double
-          description: Elapsed time so far for a running run, total run time otherwise.
+          description: |
+            Seconds the run has actually spent **executing** — advancing while it
+            runs, final once it finished, `0.0` before it starts.
+
+            This is not wall-clock time since `started_at`, and the difference
+            matters. It excludes the gaps between retry attempts, and it stops
+            advancing the moment a run leaves the running state: a run stuck in
+            `CANCELLING` keeps the figure it had reached. To show how long a run has
+            been stuck, compare `started_at` against `fetched_at` instead.
           example: 1621.877699
         run_count:
           type: integer

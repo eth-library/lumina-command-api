@@ -151,7 +151,7 @@ jede Anfrage liest den aktuellen Stand. Antwortzeit typischerweise 1–3 Sekunde
 | `paused` | Ob das Deployment in Prefect pausiert ist |
 | `last_run` | Der zuletzt **gestartete** Lauf dieser Stufe, oder `null`, wenn sie noch nie lief |
 | `last_run.state` | `COMPLETED`, `RUNNING`, `FAILED`, `CANCELLED`, `CANCELLING`, `CRASHED`, `SCHEDULED`, `PENDING`, `PAUSED` |
-| `duration_seconds` | Laufzeit in Sekunden, Fliesskomma |
+| `duration_seconds` | Tatsächliche Ausführungszeit in Sekunden, Fliesskomma — nicht die Wanduhr seit `started_at`; siehe [Endpoint Pipeline Runs](https://github.com/eth-library/lumina-command-api/blob/main/docs/endpoints/pipeline-runs.md) |
 
 > **`last_run: null` ist ein Normalzustand, kein Fehler.** Eine Stufe, die auf diesem Prefect-Server
 > noch nie gelaufen ist, liefert `null` und HTTP 200. Am 05.09.2026 traf das auf **alle sechs

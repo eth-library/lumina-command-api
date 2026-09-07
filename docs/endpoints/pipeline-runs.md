@@ -93,7 +93,7 @@ Die Angabe ist unabhängig von Gross- und Kleinschreibung; `running,failed` funk
 | `state` | Zustandstyp, siehe Liste oben |
 | `state_name` | Anzeigename desselben Zustands (`Completed`) |
 | `started_at` | Startzeit, `null` bei geplanten Läufen |
-| `duration_seconds` | Bei laufenden Läufen die bisherige Laufzeit, sonst die Gesamtlaufzeit |
+| `duration_seconds` | Tatsächliche **Ausführungszeit** in Sekunden — läuft mit, solange der Lauf läuft, endgültig nach Abschluss, `0.0` vor dem Start. Nicht die Wanduhr, siehe Hinweis unten |
 | `run_count` | Anzahl der Ausführungsversuche — `> 1` bedeutet, dass Prefect wiederholt hat |
 | `next_scheduled_start_time` | Bei geplanten Läufen der vorgesehene Startzeitpunkt |
 | `deployment` | Name des Prefect-Deployments |
@@ -191,6 +191,7 @@ curl -sS "$API_BASE/pipeline/runs?state=COMPLETED&limit=10" -H "x-api-key: $API_
 
 | Thema | Sachverhalt |
 |-------|-------------|
+| **`duration_seconds` ist Ausführungszeit, nicht Wanduhr** | Der Wert läuft mit, solange der Lauf läuft, und steht still, sobald er den laufenden Zustand verlässt. Pausen zwischen Wiederholungsversuchen zählen nicht mit. Ein in `CANCELLING` hängender Lauf behält den Wert, den er erreicht hatte: am 07.09.2026 meldete `monumental-cuscus` 30'603 s, obwohl er seit 461'863 s feststeckte. **Für «wie lange hängt der Lauf schon» ist `started_at` gegen `fetched_at` zu rechnen, nicht `duration_seconds` zu lesen.** |
 | **Geplante Läufe stehen zuoberst** | Sortiert wird absteigend nach `started_at`. Geplante Läufe haben dort `null`, was in der Sortierung zuerst kommt — die Standardabfrage beginnt daher mit den drei künftigen `DAG Orchestrator`-Läufen und nicht mit der jüngsten Aktivität. Für eine Aktivitätsansicht die geplanten Läufe ausschliessen, etwa mit `?state=RUNNING,COMPLETED,FAILED,CRASHED,CANCELLED`. |
 | **Läufe lassen sich nicht zu einem Pipeline-Durchlauf gruppieren** | Prefect speichert keine Verknüpfung zwischen einem Orchestrator-Lauf und den Läufen, die er auslöst: `parent_task_run_id` ist bei allen Läufen `null` und Tags werden nicht gesetzt. Eine Gruppierung wäre nur über ein Zeitfenster zu raten und würde falsch gruppieren. |
 | **Keine Task-Ebene** | Der Prefect-Server speichert **null** Task Runs. Innerhalb eines Laufs ist kein Fortschritt sichtbar — nur Zustand, Start und Dauer. |

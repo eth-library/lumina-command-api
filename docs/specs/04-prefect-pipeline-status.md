@@ -49,6 +49,15 @@ and without anyone hand-maintaining a list of what the Engine ingests.
       alone that the figure is shared, and must not present it as either source's own contribution.
 - [ ] When the log parser finds no matching line, then the field is `null` — never `0`, never an
       estimate, never a value carried over from another stage.
+- [ ] Given a run in any state, then `duration_seconds` reports the time it has actually spent
+      executing: advancing while it runs, final once finished, `0.0` before it starts, and never
+      exceeding the wall-clock time since `started_at`. It is Prefect's `estimated_run_time`,
+      **not** `total_run_time` — the latter sums only completed intervals and reads `0.0` for a run
+      still in progress, which is what a client would render as a nine-hour run showing zero.
+- [ ] `duration_seconds` is not wall-clock time and is not documented as such. It excludes gaps
+      between retry attempts and stops advancing once a run leaves the running state, so a run
+      stuck in `CANCELLING` keeps the figure it had reached. On 2026-09-07 one such run reported
+      30'603 s while it had been stuck for 461'863 s.
 - [ ] Given `GET /pipeline/runs?state=RUNNING`, then only runs whose state is `RUNNING` are
       returned.
 - [ ] Given `GET /pipeline/runs` with no parameters, then at most 50 runs are returned, newest

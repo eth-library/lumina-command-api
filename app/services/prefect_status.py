@@ -160,7 +160,11 @@ def _shape_run(run: dict) -> dict:
         "state_name": run.get("state_name"),
         "started_at": run.get("start_time"),
         "ended_at": run.get("end_time"),
-        "duration_seconds": run.get("total_run_time"),
+        # estimated_run_time, not total_run_time: the latter sums only *completed*
+        # intervals and is 0.0 for a run still in progress. estimated_run_time adds
+        # the time spent in the current state, and for a finished run the two are
+        # identical — so it is correct in every state.
+        "duration_seconds": run.get("estimated_run_time"),
         "run_count": run.get("run_count"),
         "next_scheduled_start_time": run.get("next_scheduled_start_time"),
     }
