@@ -27,6 +27,9 @@ code is right and the document is stale.
 
 ## Rules
 
+- **Written in English**, unlike [`endpoints/`](../endpoints/), which is German for its Confluence
+  audience. These are the machine-readable contract in a developer portal: they are read by people
+  outside the ETH Library, and by tooling that generates clients from them.
 - **One document per Apigee proxy**, named after it. A portal entry maps to a proxy, not to a
   backend namespace.
 - **They describe the gateway, not the backend.** `servers` is `api.library.ethz.ch`, and the

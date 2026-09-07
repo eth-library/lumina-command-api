@@ -1,72 +1,69 @@
 openapi: 3.0.3
 
 info:
-  title: Lumina Pipeline — Läufe
+  title: Lumina Pipeline — Runs
   version: "1.0.0"
   description: |
-    Read-only-Zugriff auf die Pipeline-Läufe der **Lumina Engine**.
+    Read-only access to the pipeline runs of the **Lumina Engine**.
 
-    Die Engine verarbeitet ihre sechs Datenquellen in einem wöchentlichen Lauf
-    (sonntags um Mitternacht, `0 0 * * 0`). Dieser Endpoint liefert eine flache
-    Liste der Läufe über alle Stufen hinweg, neueste zuerst, filterbar nach
-    Zustand.
+    The Engine processes its six data sources in a weekly pass (Sundays at
+    midnight, `0 0 * * 0`). This endpoint returns a flat list of runs across all
+    stages, newest first, filterable by state.
 
-    ## Stufen
+    ## Stages
 
-    | Stufe | Beschreibung |
-    |-------|--------------|
-    | `harvest` | Abruf der Quelldaten |
-    | `parse` | Transformation in das Lumina Core Schema |
-    | `hierarchy` | Auflösung hierarchischer Beziehungen |
-    | `merge` | Zusammenführung von SLSP ETH und SLSP Network |
-    | `unify` | Normalisierung und Zusammenführung aller Quellen |
-    | `deduplicate` | Quellenübergreifende Dublettenerkennung, Laden nach PostgreSQL |
-    | `orchestrate` | Steuerung des gesamten Ablaufs |
+    | Stage | Description |
+    |-------|-------------|
+    | `harvest` | Fetch the source data |
+    | `parse` | Transform into the Lumina Core Schema |
+    | `hierarchy` | Resolve parent/child relationships |
+    | `merge` | Fold SLSP ETH and SLSP Network into one record per work |
+    | `unify` | Normalise and merge all sources |
+    | `deduplicate` | Cross-source deduplication, load into PostgreSQL |
+    | `orchestrate` | Drive the whole pipeline |
 
-    Läufe der Stufen `merge`, `unify`, `deduplicate` und `orchestrate` gehören zu
-    keiner einzelnen Quelle und tragen `source_id: null`.
+    Runs in the `merge`, `unify`, `deduplicate` and `orchestrate` stages belong to no
+    single source and carry `source_id: null`.
 
-    ## Was diese API nicht kann
+    ## What this API cannot tell you
 
-    **Läufe lassen sich nicht zu einem Pipeline-Durchlauf gruppieren.** Prefect
-    speichert keine Verknüpfung zwischen einem Orchestrator-Lauf und den Läufen,
-    die er auslöst. Eine Gruppierung wäre über ein Zeitfenster geraten und würde
-    falsch gruppieren, darum unterbleibt sie.
+    **Runs cannot be grouped into one pipeline pass.** Prefect records no link
+    between an orchestrator run and the runs it triggers. Grouping would mean
+    guessing from a time window, and guessing wrongly, so it is not attempted.
 
-    **Kein Fortschritt innerhalb eines Laufs.** Der Prefect-Server speichert keine
-    Task Runs; sichtbar sind nur Zustand, Start und Dauer.
+    **No progress within a run.** The Prefect server stores no task runs; only
+    state, start time and duration are visible.
 
-    **Keine Historie vor dem 01.09.2026.** Die Prefect-Metadatenbank wurde an
-    diesem Tag neu angelegt. Das ist keine Aufbewahrungsfrist — frühere Läufe sind
-    schlicht nicht vorhanden.
+    **No history before 2026-09-01.** The Prefect metadata database was created that
+    day. This is not a retention window — earlier runs simply are not there.
   contact:
-    name: ETH-Bibliothek — Lumina
+    name: ETH Library — Lumina
     email: giuliage@ethz.ch
 
 servers:
   - url: https://api.library.ethz.ch/lumina/v1/pipeline
-    description: Produktion
+    description: Production
 
 security:
   - ConsumerKey: []
 
 tags:
-  - name: Läufe
-    description: Flow Runs der Lumina Engine
+  - name: Runs
+    description: Flow runs of the Lumina Engine
 
 paths:
 
   /runs:
     get:
-      tags: [Läufe]
-      summary: Pipeline-Läufe auflisten
+      tags: [Runs]
+      summary: List pipeline runs
       description: |
-        Liefert die Läufe absteigend nach Startzeit.
+        Returns runs in descending order of start time.
 
-        **Geplante Läufe stehen zuoberst.** Sie haben keine Startzeit, und `null`
-        sortiert absteigend zuerst — die Standardabfrage beginnt daher mit den
-        künftigen Orchestrator-Läufen, nicht mit der jüngsten Aktivität. Für eine
-        Aktivitätsansicht die geplanten Läufe ausschliessen:
+        **Scheduled runs come first.** They have no start time, and `null` sorts
+        first in descending order — so the default query leads with the upcoming
+        orchestrator runs rather than with recent activity. To see activity, exclude
+        the scheduled ones:
 
         ```
         GET /runs?state=RUNNING,COMPLETED,FAILED,CRASHED,CANCELLED
@@ -76,7 +73,7 @@ paths:
         - name: limit
           in: query
           required: false
-          description: Anzahl zurückgegebener Läufe.
+          description: Number of runs to return.
           schema:
             type: integer
             minimum: 1
@@ -86,43 +83,41 @@ paths:
           in: query
           required: false
           description: |
-            Kommaseparierte Zustände. Ohne Angabe werden alle geliefert.
-            Gross- und Kleinschreibung spielen keine Rolle.
+            Comma-separated states. Omit to get all of them. Case-insensitive.
 
-            Ein unbekannter Zustand wird mit `400` abgewiesen und **nicht**
-            ignoriert — sonst käme auf einen Tippfehler hin eine plausibel
-            aussehende, aber ungefilterte Liste zurück.
+            An unknown state is rejected with `400` rather than ignored — otherwise a
+            typo would return a plausible-looking but unfiltered list.
           schema:
             type: string
           examples:
-            laufend:
-              summary: Nur laufende Läufe
+            running:
+              summary: Currently running
               value: RUNNING
-            probleme:
-              summary: Alles, was schiefging
+            problems:
+              summary: Everything that went wrong
               value: FAILED,CRASHED,CANCELLED
-            aktivitaet:
-              summary: Aktivität ohne die geplanten Läufe
+            activity:
+              summary: Activity, excluding scheduled runs
               value: RUNNING,COMPLETED,FAILED,CRASHED,CANCELLED
       responses:
         "200":
-          description: Die Läufe, neueste zuerst.
+          description: The runs, newest first.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/RunList"
         "400":
-          description: Ungültiger `state` oder `limit` ausserhalb des Bereichs.
+          description: Invalid `state`, or `limit` out of range.
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
               examples:
-                unbekannterZustand:
+                unknownState:
                   value:
                     detail: >-
                       Unknown state 'BOGUS'. Known: SCHEDULED, PENDING, RUNNING,
                       COMPLETED, FAILED, CANCELLED, CANCELLING, CRASHED, PAUSED.
-                limitZuGross:
+                limitTooLarge:
                   value:
                     detail: "limit must be between 1 and 200, got 999."
         "401": { $ref: "#/components/responses/Unauthorized" }
@@ -136,13 +131,13 @@ components:
       in: header
       name: x-api-key
       description: |
-        Der Consumer-Key aus dem Apigee-Entwicklerportal. Nicht zu verwechseln mit
-        dem internen Schlüssel des Backends — den setzt das Gateway selbst ein, er
-        verlässt Apigee nie.
+        Your consumer key from the Apigee developer portal. This is not the
+        backend's internal key — the gateway supplies that itself, and it never
+        leaves Apigee.
 
   responses:
     Unauthorized:
-      description: Consumer-Key fehlt oder ist ungültig.
+      description: Consumer key missing or invalid.
       content:
         application/json:
           schema: { $ref: "#/components/schemas/Error" }
@@ -150,8 +145,8 @@ components:
             detail: Missing API key.
     PrefectUnavailable:
       description: |
-        Der Prefect-Server der Lumina Engine ist nicht erreichbar. Kein Fehler
-        dieser API — die übrigen Endpoints funktionieren weiter.
+        The Lumina Engine's Prefect server is unreachable. Not a fault of this API —
+        its other endpoints keep working.
       content:
         application/json:
           schema: { $ref: "#/components/schemas/Error" }
@@ -168,14 +163,14 @@ components:
           type: string
           format: date-time
           description: |
-            Zeitpunkt der Abfrage im Backend. Bei einem Treffer im Gateway-Cache
-            bis zu 60 Sekunden alt.
+            When the backend queried Prefect. On a gateway cache hit this may be up
+            to 60 seconds old.
           example: "2026-09-06T08:54:09Z"
         total:
           type: integer
           description: |
-            Anzahl **aller** Läufe, die dem Filter entsprechen — kann grösser sein
-            als die Länge von `runs`, wenn `limit` greift.
+            The number of **all** runs matching the filter — may exceed the length of
+            `runs` when `limit` applies.
           example: 27
         runs:
           type: array
@@ -194,8 +189,8 @@ components:
         name:
           type: string
           description: |
-            Der von Prefect vergebene Zufallsname — unter diesem Namen ist der Lauf
-            auch in der Prefect-Oberfläche zu finden.
+            The random name Prefect assigns to a run — the name it also appears under
+            in the Prefect UI.
           example: rainbow-octopus
         state:
           $ref: "#/components/schemas/RunState"
@@ -206,7 +201,7 @@ components:
           type: string
           format: date-time
           nullable: true
-          description: "`null` bei geplanten, noch nicht gestarteten Läufen."
+          description: "`null` for scheduled runs that have not started."
           example: "2026-09-06T05:15:01.425777Z"
         ended_at:
           type: string
@@ -216,28 +211,28 @@ components:
         duration_seconds:
           type: number
           format: double
-          description: Bei laufenden Läufen die bisherige, sonst die Gesamtlaufzeit.
+          description: Elapsed time so far for a running run, total run time otherwise.
           example: 1621.877699
         run_count:
           type: integer
-          description: Ausführungsversuche. Ein Wert über 1 heisst, Prefect hat wiederholt.
+          description: Execution attempts. A value above 1 means Prefect retried.
           example: 1
         next_scheduled_start_time:
           type: string
           format: date-time
           nullable: true
-          description: Bei geplanten Läufen der vorgesehene Startzeitpunkt.
+          description: For scheduled runs, when they are due to start.
           example: null
         deployment:
           type: string
           nullable: true
-          description: Name des Prefect-Deployments.
+          description: Name of the Prefect deployment.
           example: "Parse: ALMA ETH"
         source_id:
           type: string
           nullable: true
           description: |
-            Zugehörige Datenquelle, oder `null` bei quellenübergreifenden Stufen.
+            The data source this run belongs to, or `null` for cross-source stages.
           enum:
             - slsp_eth
             - slsp_network
@@ -251,9 +246,8 @@ components:
           type: string
           nullable: true
           description: |
-            Aus dem Deployment abgeleitet, nicht von Prefect geliefert. Ein neues
-            Deployment in der Lumina Engine erscheint mit `null`, bis diese API
-            angepasst wird.
+            Derived from the deployment, not supplied by Prefect. A new deployment in
+            the Lumina Engine appears as `null` until this API is updated.
           enum:
             - harvest
             - parse
@@ -267,7 +261,7 @@ components:
 
     RunState:
       type: string
-      description: Zustandstyp des Laufs in Prefect.
+      description: The run's state type in Prefect.
       enum:
         - SCHEDULED
         - PENDING

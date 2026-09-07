@@ -1,72 +1,71 @@
 openapi: 3.0.3
 
 info:
-  title: Lumina Pipeline — Datenquellen
+  title: Lumina Pipeline — Data Sources
   version: "1.0.0"
   description: |
-    Read-only-Zugriff auf die sechs Datenquellen der **Lumina Engine**.
+    Read-only access to the six data sources of the **Lumina Engine**.
 
-    Die Lumina Engine führt Metadaten aus sechs bibliografischen und
-    wissenschaftlichen Quellsystemen in einem gemeinsamen Datenmodell zusammen und
-    orchestriert die Verarbeitung mit Prefect. Diese API übersetzt Prefects Sicht in
-    die Begriffe **Quelle**, **Stufe** und **letzter Lauf**.
+    The Lumina Engine consolidates metadata from six bibliographic and scholarly
+    source systems into a shared data model, orchestrated with Prefect. This API
+    translates Prefect's view into the terms **source**, **stage** and **last run**.
 
-    ## Pipeline-Stufen
+    ## Pipeline stages
 
-    | Stufe | Bedeutung |
-    |-------|-----------|
-    | `harvest` | Abruf der Quelldaten und Ablage als Rohdaten |
-    | `parse` | Transformation in das gemeinsame Lumina Core Schema |
-    | `hierarchy` | Auflösung hierarchischer Beziehungen (nur E-Rara) |
-    | `unify` | Normalisierung und Zusammenführung aller Quellen |
+    | Stage | Meaning |
+    |-------|---------|
+    | `harvest` | Fetch the source data and store it as raw records |
+    | `parse` | Transform into the shared Lumina Core Schema |
+    | `hierarchy` | Resolve parent/child relationships (e-rara only) |
+    | `unify` | Normalise and merge all sources |
 
-    ## Zu den Bestandszahlen
+    ## About the record counts
 
-    Der Prefect-Server der Lumina Engine speichert keine strukturierten Kennzahlen.
-    Die Zahlen in `records` und `metrics` stammen aus den Logzeilen des jeweiligen
-    Laufs; jede Angabe trägt darum ihre Herkunft mit sich. Findet sich keine
-    passende Zeile, ist der Wert `null` — **nie `0`, nie geschätzt**.
+    The Lumina Engine's Prefect server stores no structured metrics. The numbers in
+    `records` and `metrics` are read out of the log lines of the run that produced
+    them, so every figure carries its own provenance. When no matching line is
+    found the value is `null` — **never `0`, never estimated**.
 
-    Parse- und Unify-Zahl einer Quelle dürfen abweichen und tun das auch: Research
-    Collection parste am 01.09.2026 306'939 Datensätze, brachte aber 293'374 in die
-    Zusammenführung ein. Diese API rechnet die Werte nicht gegeneinander auf.
+    A source's parse count and unify count may differ, and do: on 2026-09-01
+    Research Collection parsed 306,939 records but contributed 293,374 at unify.
+    This API does not reconcile the two into one number.
 
-    ## Verfügbarkeit
+    ## Availability
 
-    Die Endpoints lesen live aus dem Prefect-Server. Ist dieser gestört, antworten
-    sie mit `502`, während die übrige Lumina Command API gesund bleibt. Antworten
-    werden im Gateway 60 Sekunden zwischengespeichert.
+    These endpoints read live from the Prefect server. When it is unreachable they
+    answer `502` while the rest of the Lumina Command API stays healthy. Responses
+    are cached at the gateway for 60 seconds.
   contact:
-    name: ETH-Bibliothek — Lumina
+    name: ETH Library — Lumina
     email: giuliage@ethz.ch
 
 servers:
   - url: https://api.library.ethz.ch/lumina/v1/pipeline
-    description: Produktion
+    description: Production
 
 security:
   - ConsumerKey: []
 
 tags:
-  - name: Datenquellen
-    description: Die sechs Quellsysteme der Lumina Engine
+  - name: Data sources
+    description: The six source systems of the Lumina Engine
 
 paths:
 
   /sources:
     get:
-      tags: [Datenquellen]
-      summary: Alle Datenquellen auflisten
+      tags: [Data sources]
+      summary: List all data sources
       description: |
-        Liefert alle sechs Quellen mit ihren Pipeline-Stufen, dem letzten Lauf je
-        Stufe und der beim letzten Parse-Lauf beobachteten Bestandszahl.
+        Returns all six sources with their pipeline stages, the last run of each
+        stage, and the record count observed during the last parse run.
 
-        Für die Übersichtsdarstellung gedacht. Detailkennzahlen pro Stufe liefert
+        Intended for an overview. Per-stage metrics are available from
         `GET /sources/{source_id}`.
       operationId: listSources
       responses:
         "200":
-          description: Die sechs Quellen.
+          description: The six sources.
           content:
             application/json:
               schema:
@@ -76,36 +75,35 @@ paths:
 
   /sources/{source_id}:
     get:
-      tags: [Datenquellen]
-      summary: Eine Datenquelle im Detail
+      tags: [Data sources]
+      summary: Get one data source in detail
       description: |
-        Wie die Liste, zusätzlich mit einem `metrics`-Block **pro Stufe** und der
-        gemeinsamen Stufe `unify`. Jede Kennzahl nennt in `matched_line` die
-        Logzeile, aus der sie stammt.
+        As the list, plus a `metrics` block **per stage** and the shared `unify`
+        stage. Each figure names the log line it came from in `matched_line`.
       operationId: getSource
       parameters:
         - name: source_id
           in: path
           required: true
-          description: Kennung der Quelle.
+          description: Identifier of the source.
           schema:
             $ref: "#/components/schemas/SourceId"
       responses:
         "200":
-          description: Die Quelle mit Kennzahlen je Stufe.
+          description: The source, with metrics per stage.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/SourceDetail"
         "401": { $ref: "#/components/responses/Unauthorized" }
         "404":
-          description: Unbekannte Quellen-Kennung.
+          description: Unknown source identifier.
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
               example:
                 detail: >-
-                  Unknown source 'gibtsnicht'. Known: slsp_eth, slsp_network, epics,
+                  Unknown source 'nosuchsource'. Known: slsp_eth, slsp_network, epics,
                   erara, research_collection, semantic_scholar.
         "502": { $ref: "#/components/responses/PrefectUnavailable" }
 
@@ -117,13 +115,13 @@ components:
       in: header
       name: x-api-key
       description: |
-        Der Consumer-Key aus dem Apigee-Entwicklerportal. Nicht zu verwechseln mit
-        dem internen Schlüssel des Backends — den setzt das Gateway selbst ein, er
-        verlässt Apigee nie.
+        Your consumer key from the Apigee developer portal. This is not the
+        backend's internal key — the gateway supplies that itself, and it never
+        leaves Apigee.
 
   responses:
     Unauthorized:
-      description: Consumer-Key fehlt oder ist ungültig.
+      description: Consumer key missing or invalid.
       content:
         application/json:
           schema: { $ref: "#/components/schemas/Error" }
@@ -131,8 +129,8 @@ components:
             detail: Missing API key.
     PrefectUnavailable:
       description: |
-        Der Prefect-Server der Lumina Engine ist nicht erreichbar. Kein Fehler
-        dieser API — die übrigen Endpoints funktionieren weiter.
+        The Lumina Engine's Prefect server is unreachable. Not a fault of this API —
+        its other endpoints keep working.
       content:
         application/json:
           schema: { $ref: "#/components/schemas/Error" }
@@ -143,7 +141,7 @@ components:
 
     SourceId:
       type: string
-      description: Kennung einer Datenquelle.
+      description: Identifier of a data source.
       enum:
         - slsp_eth
         - slsp_network
@@ -161,7 +159,7 @@ components:
           $ref: "#/components/schemas/FetchedAt"
         sources:
           type: array
-          description: Immer genau sechs Einträge.
+          description: Always exactly six entries.
           items: { $ref: "#/components/schemas/Source" }
 
     SourceDetail:
@@ -188,14 +186,14 @@ components:
           $ref: "#/components/schemas/SourceId"
         label:
           type: string
-          description: Anzeigename der Quelle.
+          description: Display name of the source.
           example: E-Rara
         description:
           type: string
           nullable: true
           description: |
-            Beschreibung aus dem Prefect-Deployment des Harvesters, unverändert
-            übernommen. Wird in der Lumina Engine gepflegt, nicht hier — englisch.
+            Description taken verbatim from the harvester's Prefect deployment.
+            Maintained in the Lumina Engine, not here.
           example: "e-rara METS over OAI-PMH (set `zut`) → erara_*."
 
     Source:
@@ -209,8 +207,8 @@ components:
               allOf:
                 - $ref: "#/components/schemas/RecordCount"
               description: |
-                Bestandszahl aus dem Log des letzten Parse-Laufs. `null`, wenn die
-                Stufe nie lief oder keine passende Logzeile gefunden wurde.
+                Record count from the last parse run's log. `null` when the stage has
+                never run, or when no matching log line was found.
             stages:
               type: array
               items: { $ref: "#/components/schemas/Stage" }
@@ -226,16 +224,16 @@ components:
           example: 45250
         origin:
           type: string
-          description: Herkunftsart des Werts. Derzeit immer `flow-run-log`.
+          description: How the figure was obtained. Currently always `flow-run-log`.
           enum: [flow-run-log]
         flow:
           type: string
-          description: Prefect-Flow, dessen Log die Zahl geliefert hat.
+          description: The Prefect flow whose log supplied the figure.
           example: "Parse: ERARA"
         measured_at:
           type: string
           format: date-time
-          description: Endzeit des Laufs — der Stand, auf den sich die Zahl bezieht.
+          description: End time of that run — the state the figure describes.
           example: "2026-09-06T00:00:33.620826Z"
 
     Stage:
@@ -248,7 +246,7 @@ components:
           example: parse
         deployment:
           type: string
-          description: Name des Prefect-Deployments.
+          description: Name of the Prefect deployment.
           example: "Parse: ERARA"
         description:
           type: string
@@ -258,22 +256,22 @@ components:
           type: array
           nullable: true
           description: |
-            Cron-Ausdrücke des Deployments, oder `null`. Die Quellstufen haben
-            keinen eigenen Zeitplan — geplant ist nur der DAG-Orchestrator
-            (`0 0 * * 0`, sonntags um Mitternacht).
+            Cron expressions of the deployment, or `null`. The per-source stages carry
+            no schedule of their own — only the DAG orchestrator is scheduled
+            (`0 0 * * 0`, Sundays at midnight).
           items: { type: string }
           example: null
         paused:
           type: boolean
-          description: Ob das Deployment in Prefect pausiert ist.
+          description: Whether the deployment is paused in Prefect.
           example: false
         last_run:
           nullable: true
           allOf:
             - $ref: "#/components/schemas/Run"
           description: |
-            Der zuletzt **gestartete** Lauf dieser Stufe. `null` bedeutet, dass die
-            Stufe noch nie lief — ein regulärer Zustand, kein Fehler.
+            The most recently **started** run of this stage. `null` means the stage
+            has never run — a normal state, not an error.
 
     StageWithMetrics:
       allOf:
@@ -290,8 +288,8 @@ components:
       type: object
       required: [records, matched_line]
       description: |
-        Aus dem Log dieser Stufe gelesene Kennzahl. `null`, wenn keine passende
-        Zeile gefunden wurde.
+        Figure read from this stage's own log. `null` when no matching line was
+        found.
       properties:
         records:
           type: integer
@@ -299,7 +297,7 @@ components:
           example: 293374
         matched_line:
           type: string
-          description: Die Logzeile, aus der die Zahl stammt — der Beleg.
+          description: The log line the figure came from — the evidence for it.
           example: "Loading rc: 293,374 rows in 1 batch(es)..."
 
     Run:
@@ -315,20 +313,20 @@ components:
         name:
           type: string
           description: |
-            Der von Prefect vergebene Zufallsname — unter diesem Namen ist der Lauf
-            auch in der Prefect-Oberfläche zu finden.
+            The random name Prefect assigns to a run — the name it also appears under
+            in the Prefect UI.
           example: competent-weasel
         state:
           $ref: "#/components/schemas/RunState"
         state_name:
           type: string
-          description: Anzeigename desselben Zustands.
+          description: Display name of the same state.
           example: Completed
         started_at:
           type: string
           format: date-time
           nullable: true
-          description: "`null` bei geplanten, noch nicht gestarteten Läufen."
+          description: "`null` for scheduled runs that have not started."
           example: "2026-09-06T00:00:07.110239Z"
         ended_at:
           type: string
@@ -338,11 +336,11 @@ components:
         duration_seconds:
           type: number
           format: double
-          description: Bei laufenden Läufen die bisherige, sonst die Gesamtlaufzeit.
+          description: Elapsed time so far for a running run, total run time otherwise.
           example: 26.510587
         run_count:
           type: integer
-          description: Ausführungsversuche. Ein Wert über 1 heisst, Prefect hat wiederholt.
+          description: Execution attempts. A value above 1 means Prefect retried.
           example: 1
         next_scheduled_start_time:
           type: string
@@ -352,7 +350,7 @@ components:
 
     RunState:
       type: string
-      description: Zustandstyp des Laufs in Prefect.
+      description: The run's state type in Prefect.
       enum:
         - SCHEDULED
         - PENDING
@@ -369,8 +367,8 @@ components:
       type: string
       format: date-time
       description: |
-        Zeitpunkt der Abfrage im Backend. Bei einem Treffer im Gateway-Cache bis zu
-        60 Sekunden alt.
+        When the backend queried Prefect. On a gateway cache hit this may be up to
+        60 seconds old.
       example: "2026-09-06T08:54:09Z"
 
     Error:

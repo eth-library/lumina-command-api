@@ -22,7 +22,9 @@ developer onboarding; [`SYSTEMOVERVIEW.md`](SYSTEMOVERVIEW.md) is the internal C
 overview and [`endpoints/`](endpoints/) holds one Confluence page per endpoint — both written in
 German for that audience. [`openapi/`](openapi/) holds the machine-readable contract as consumers
 see it through Apigee, one document per proxy, published to the developer portal by
-[runbook 05](runbooks/05-apigee-proxy.md). All of them summarize the three kinds above and the
+[runbook 05](runbooks/05-apigee-proxy.md) — **in English**, because a developer portal is read
+beyond this library and its documents are consumed by client-generating tooling. All of the
+derived docs summarize the three kinds above and the
 code — they have no authority of their own, they link to procedures rather than restating them,
 and they are created or updated only when asked. They are not a step in the loop.
 
