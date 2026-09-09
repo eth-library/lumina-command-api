@@ -101,9 +101,11 @@ We will add a **read-only façade** over the Prefect API to `lumina-command-api`
 
   > **Resolved 2026-09-06.** The first deploy to `ethbib-lumina` answered `200` in 0.55 s from
   > `europe-west6`, with no VPC connector and no ingress change. The risk above did not
-  > materialise. It stays on record because nothing guarantees the path: it is not a configured,
-  > documented route but an incidental one, and a firewall or network change on either side would
-  > break `/pipeline/*` without warning. Runbook 01 step 4 remains the check on every deploy.
+  > materialise. The path is Direct VPC Egress through Cloud NAT with a static IP, and on the ETH
+  > side a dedicated firewall rule requested through the ID opens port 4200 on the Prefect host for
+  > that IP. It stays on record because the rule is bound to the IP: replacing the address, the
+  > gateway or the host breaks `/pipeline/*` until the rule is updated. Runbook 01 step 4 remains
+  > the check on every deploy; [EGRESS-NAT.md](../EGRESS-NAT.md) describes the path.
 - **Apigee must be configured for `/pipeline/*` separately.** Until it is, the endpoints exist but
   no consumer can reach them. This is the drift that [0004](0004-apigee-as-sole-public-ingress.md)
   already records: the contract lives both in FastAPI's generated OpenAPI document and in Apigee.

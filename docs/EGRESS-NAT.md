@@ -36,9 +36,14 @@ die dynamischen Egress-IPs von Cloud Run nicht.
 Nur `/pipeline/*` benutzt diesen Weg. OpenAI und Pinecone werden ebenfalls über die NAT erreicht,
 sind aber öffentlich und nicht auf die IP angewiesen.
 
-**Der Weg ist gewachsen, nicht konfiguriert.** VPC, Router und NAT wurden ausserhalb der Runbooks
-angelegt; ihre Erstellung ist nirgends dokumentiert. Was dokumentiert und verifiziert ist, ist die
-eine Einstellung, die Probleme gemacht hat — die Port-Zuteilung.
+**Auf der ETH-Seite ist der Weg formal erlaubt.** Über die ID wurde Port 4200 auf `lumina-box01`
+dediziert für die Egress-IP `34.65.28.93` geöffnet. Die statische IP ist die Voraussetzung dieser
+Regel — mit den wechselnden Egress-IPs von Cloud Run liesse sie sich nicht formulieren.
+
+**Auf der Google-Seite ist die Erstellung nicht als Prozedur festgehalten.** VPC, Router, NAT und
+die Reservierung der IP wurden ausserhalb der Runbooks angelegt; diese Seite beschreibt, was
+existiert, nicht die Befehlsfolge, mit der man es neu anlegen würde. Dokumentiert und verifiziert
+ist die eine Einstellung, die Probleme gemacht hat — die Port-Zuteilung.
 
 ## Was am 2026-09-09 passiert ist
 
@@ -132,9 +137,9 @@ ein Skript mit `Cache-Control: no-cache` in einer Schleife.
 | Thema | Sachverhalt |
 |-------|-------------|
 | **Der Weg ist nicht dokumentiert angelegt** | VPC, Router, NAT und die Reservierung der IP wurden ausserhalb der Runbooks erstellt. Wer das Projekt neu aufsetzen muss, findet dafür keine Prozedur — Runbook 03 sagt das ausdrücklich. |
-| **Eine Firewall-Regel kann den Weg jederzeit schliessen** | Es gibt keine Vereinbarung mit dem ETH-Netzbetrieb über `34.65.28.93 → 129.132.180.17:4200`. Der Weg funktioniert, weil nichts ihn blockiert, nicht weil etwas ihn erlaubt. Bei einem `502` mit errno `111` im Log ist das die erste Frage. |
+| **Die Firewall-Regel hängt an der IP** | Die ID-Regel erlaubt genau `34.65.28.93 → 129.132.180.17:4200`. Wird die Egress-IP ersetzt, die NAT neu angelegt oder der Prefect-Host umgezogen, muss die Regel nachgezogen werden — sonst `502` mit errno `111` im Log. Das ist bei diesem Fehlerbild die erste Frage. |
+| **Die ID-Referenz ist im Repository nicht hinterlegt** | Wer die Regel ändern lassen muss, braucht die Ticket- oder Antragsnummer. Sie gehört in Runbook 03, sobald sie vorliegt. |
 | **Die Grenze ist verschoben, nicht aufgehoben** | Dynamische Zuteilung endet bei 4096 Ports pro Instanz. Mit 120 s TIME_WAIT und vier Verbindungen pro kaltem Aufruf ist das für jede realistische Last irrelevant — aber nicht unendlich. |
-| **Drei Instanzen gelten ab dem nächsten Deploy** | `deploy.sh` setzt `--max-instances=3`; eine vorher erstellte Revision ist noch unbegrenzt. |
 | **Keep-Alive hält nur 5 Sekunden** | Uvicorn auf der Prefect-Seite schliesst Leerlaufverbindungen nach 5 s. Aufrufe, die weiter auseinanderliegen, öffnen wieder bis zu vier neue Verbindungen — was das Budget mit dynamischer Zuteilung problemlos trägt. |
 
 ## Verwandte Dokumentation

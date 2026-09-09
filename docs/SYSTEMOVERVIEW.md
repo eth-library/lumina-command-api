@@ -107,9 +107,11 @@ Cloud-Run-Dienst bleibt auf Plattformebene `--allow-unauthenticated` und erzwing
 Applikationscode.
 
 **Der Weg nach Prefect** führt aus Cloud Run über Direct VPC Egress (`lumina-egress-vpc`) und Cloud
-NAT mit einer statischen IP ins ETH-Netz. Er ist kein konfigurierter, sondern ein gewachsener Pfad —
-eine Firewall-Änderung auf einer der beiden Seiten würde `/pipeline/*` unterbrechen, ohne den Rest
-der API zu berühren. Jeder Deploy prüft ihn (Runbook 01, Schritt 4).
+NAT mit einer statischen IP ins ETH-Netz. Auf der ETH-Seite ist Port 4200 auf dem Prefect-Host über
+die ID dediziert für diese IP geöffnet — deshalb ist die IP statisch. Eine Änderung an der IP, am
+Host oder an der Regel würde `/pipeline/*` unterbrechen, ohne den Rest der API zu berühren. Jeder
+Deploy prüft den Weg (Runbook 01, Schritt 4); Details in
+[EGRESS-NAT.md](https://github.com/eth-library/lumina-command-api/blob/main/docs/EGRESS-NAT.md).
 
 ### 3.2 Schichtenmodell
 
@@ -498,7 +500,7 @@ Die `/pipeline`-Endpoints funktionieren lokal nur aus dem ETH-Netz oder per VPN,
 | Thema | Sachverhalt |
 |-------|-------------|
 | **Bestandszahlen aus Logzeilen** | Die `/pipeline`-Zahlen stammen aus Regex auf Prefect-Logs. Wird in der Engine eine Logmeldung umformuliert, wird aus der Zahl still `null` — kein Fehler, kein Hinweis. Bewusst so gewählt: lieber keine Zahl als eine falsche. Die dauerhafte Lösung ist [ADR 0008](https://github.com/eth-library/lumina-command-api/blob/main/docs/adr/0008-stage-reports-from-cloud-sql.md). |
-| **Prefect ist eine Verfügbarkeitsabhängigkeit** | Ist der Prefect-Server oder der Netzwerkweg dorthin gestört, liefert `/pipeline/*` `502`; `/commands/*` arbeitet weiter. Der Weg von Cloud Run ins ETH-Netz ist gewachsen, nicht konfiguriert. |
+| **Prefect ist eine Verfügbarkeitsabhängigkeit** | Ist der Prefect-Server oder der Netzwerkweg dorthin gestört, liefert `/pipeline/*` `502`; `/commands/*` arbeitet weiter. Die Firewall-Regel auf der ETH-Seite ist an die statische Egress-IP gebunden. |
 | **Prefect-Historie erst ab 2026-09-01** | Die Prefect-Metadatenbank wurde an diesem Tag neu angelegt; frühere Läufe sind dort nicht vorhanden. Prefect 3 löscht keine Flow Runs — die Datenbank war schlicht leer. |
 | **Verbindungsburst nach Prefect — behoben** | Am 2026-09-09 lehnte der Weg nach Prefect Verbindungen ab, weil ein Client pro Request bis zu 15 TCP-Verbindungen in 50 ms öffnete und Cloud NAT mit 64 statischen Ports pro Instanz nach vier Seitenaufrufen erschöpft war. Behoben auf beiden Seiten: ein geteilter Keep-Alive-Client ([ADR 0009](https://github.com/eth-library/lumina-command-api/blob/main/docs/adr/0009-shared-keepalive-client-for-prefect.md)) und dynamische NAT-Port-Zuteilung (Runbook 03, Schritt 8). Nachgewiesen mit 60 ungecachten Aufrufen in Folge. |
 | **Plain-CSV-Upload schlägt fehl** | `run_pinecone_upsert` ruft `gzip.decompress` bedingungslos auf. Ein unkomprimiertes `.csv` wird dokumentiert unterstützt, führt aber zu einem Fehler. Offen ist, ob der Code oder die Dokumentation korrigiert wird. |
