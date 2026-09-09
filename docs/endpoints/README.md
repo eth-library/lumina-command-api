@@ -13,7 +13,8 @@ pasted into Confluence.
 | `POST /commands/transform-eth-udk-csv` | [transform-eth-udk-csv.md](transform-eth-udk-csv.md) |
 | `POST /commands/upsert-pinecone` | [upsert-pinecone.md](upsert-pinecone.md) |
 | `POST /commands/upsert-pinecone-polling`<br>`GET /commands/upsert-pinecone-polling/{job_id}/status` | [upsert-pinecone-polling.md](upsert-pinecone-polling.md) |
-| `GET /pipeline/sources`<br>`GET /pipeline/sources/{source_id}` | [pipeline-sources.md](pipeline-sources.md) |
+| `GET /pipeline/sources` | [pipeline-sources.md](pipeline-sources.md) |
+| `GET /pipeline/sources/{source_id}` | [pipeline-sources-source-id.md](pipeline-sources-source-id.md) |
 | `GET /pipeline/runs` | [pipeline-runs.md](pipeline-runs.md) |
 
 The utility endpoints (`/`, `/health`, `/version`) have no page of their own — they are covered in

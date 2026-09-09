@@ -6,7 +6,7 @@
 > Übergeordnete Dokumentation:
 > [System Overview](https://github.com/eth-library/lumina-command-api/blob/main/docs/SYSTEMOVERVIEW.md).
 >
-> **Stand:** 2026-09-06
+> **Stand:** 2026-09-09
 
 ## Übersicht
 
@@ -21,6 +21,8 @@
 | **Implementierung** | [`app/routers/pipeline.py`](https://github.com/eth-library/lumina-command-api/blob/main/app/routers/pipeline.py) → [`app/services/prefect_status.py`](https://github.com/eth-library/lumina-command-api/blob/main/app/services/prefect_status.py) |
 | **Spezifikation** | [Spec 04](https://github.com/eth-library/lumina-command-api/blob/main/docs/specs/04-prefect-pipeline-status.md) |
 | **Architekturentscheid** | [ADR 0007](https://github.com/eth-library/lumina-command-api/blob/main/docs/adr/0007-prefect-read-only-proxy.md) |
+| **Apigee-Proxy** | `lumina-pipeline-runs`, Basepath `/lumina/v1/pipeline/runs`, Response-Cache 60 s |
+| **OpenAPI (Portal)** | [lumina-pipeline-runs.yaml](https://github.com/eth-library/lumina-command-api/blob/main/docs/openapi/lumina-pipeline-runs.yaml) |
 
 ## Funktion
 
@@ -171,8 +173,9 @@ curl -sS "$API_BASE/pipeline/runs?state=COMPLETED&limit=10" -H "x-api-key: $API_
 ## Postman-Anleitung
 
 - **Methode:** GET
+- **URL (Apigee):** `https://api.library.ethz.ch/lumina/v1/pipeline/runs`
 - **URL (lokal):** `http://127.0.0.1:8080/pipeline/runs`
-- **URL (Cloud Run):** `https://lumina-command-api-171616207524.europe-west6.run.app/pipeline/runs`
+- **URL (Cloud Run, nur für Betrieb):** `https://lumina-command-api-171616207524.europe-west6.run.app/pipeline/runs`
 - **Header:** `x-api-key: <Key>`
 - **Params:**
 
@@ -202,7 +205,7 @@ curl -sS "$API_BASE/pipeline/runs?state=COMPLETED&limit=10" -H "x-api-key: $API_
 | **`stage` und `source_id` sind abgeleitet, nicht von Prefect geliefert** | Beide stammen aus einer Zuordnungstabelle in dieser API. Ein neues Deployment in `lumina-engine` erscheint mit `stage: null`, bis diese API angepasst wird. |
 | **Keine Paginierung** | Es gibt nur `limit`, keinen Offset und keinen Cursor. Mehr als 200 Läufe auf einmal sind nicht abrufbar. |
 | **Prefect ist eine Verfügbarkeitsabhängigkeit** | Fällt der Prefect-Server oder der Netzwerkweg aus, liefert der Endpoint `502`, während die übrige API gesund ist. |
-| **Kein Cache** | Jeder Aufruf liest den aktuellen Stand. Ein Dashboard, das im Sekundentakt aktualisiert, sollte über einen Response-Cache in Apigee X gehen. |
+| **Kein Cache in der API** | Jeder Aufruf liest den aktuellen Stand. Der Response-Cache liegt in Apigee (60 s, getrennt je Query-String); direkte Aufrufe der Cloud-Run-URL umgehen ihn. |
 
 ## Verwandte Dokumentation
 

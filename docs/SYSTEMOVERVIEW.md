@@ -198,7 +198,7 @@ Confluence-Seiten je Endpoint: [docs/endpoints/](https://github.com/eth-library/
 Derselbe `x-api-key` wie bei `/commands/*`. Spezifikation mit Abnahmekriterien:
 [Spec 04](https://github.com/eth-library/lumina-command-api/blob/main/docs/specs/04-prefect-pipeline-status.md).
 Contract fürs Entwicklerportal, auf Englisch: [docs/openapi/](https://github.com/eth-library/lumina-command-api/tree/main/docs/openapi).
-Confluence-Seiten: [pipeline-sources](https://github.com/eth-library/lumina-command-api/blob/main/docs/endpoints/pipeline-sources.md), [pipeline-runs](https://github.com/eth-library/lumina-command-api/blob/main/docs/endpoints/pipeline-runs.md).
+Confluence-Seiten: [pipeline-sources](https://github.com/eth-library/lumina-command-api/blob/main/docs/endpoints/pipeline-sources.md), [pipeline-sources-source-id](https://github.com/eth-library/lumina-command-api/blob/main/docs/endpoints/pipeline-sources-source-id.md), [pipeline-runs](https://github.com/eth-library/lumina-command-api/blob/main/docs/endpoints/pipeline-runs.md).
 
 Apigee legt pro Endpoint einen Proxy an, mit vollem Basepath (`/lumina/v1/pipeline/sources`). Ein
 neuer Backend-Pfad braucht darum einen neuen Proxy — [Runbook 05](https://github.com/eth-library/lumina-command-api/blob/main/docs/runbooks/05-apigee-proxy.md).
