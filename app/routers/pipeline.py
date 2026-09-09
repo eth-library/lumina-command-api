@@ -22,10 +22,30 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/pipeline", tags=["pipeline"], dependencies=[Depends(verify_api_key)])
 
 
+def _root_cause(exc: BaseException) -> BaseException:
+    """
+    The innermost exception in the chain. httpx wraps the OS error three levels
+    deep ("All connection attempts failed" twice, then the real one), and that
+    innermost one is the only place the errno lives.
+    """
+    seen: set[int] = set()
+    while id(exc) not in seen:
+        seen.add(id(exc))
+        nested = getattr(exc, "exceptions", None)  # ExceptionGroup
+        following = (nested[0] if nested else None) or exc.__cause__ or exc.__context__
+        if following is None:
+            return exc
+        exc = following
+    return exc
+
+
 def _unavailable(exc: Exception) -> JSONResponse:
     # An expected failure mode, not a defect in this service: log the cause, not a
     # stack trace that would repeat on every request for the duration of an outage.
-    logger.warning("Prefect API unreachable: %s", exc)
+    # The root cause carries the errno, and the errno names the culprit:
+    # "[Errno 111] Connection refused" is a firewall, "[Errno 99] Cannot assign
+    # requested address" is NAT port exhaustion (ADR 0009).
+    logger.warning("Prefect API unreachable: %s — root cause: %r", exc, _root_cause(exc))
     return JSONResponse(status_code=502, content={"detail": f"Prefect API unreachable: {exc}"})
 
 

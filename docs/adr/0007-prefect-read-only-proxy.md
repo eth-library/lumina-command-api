@@ -1,8 +1,13 @@
 # 0007 — A read-only façade over the Lumina Engine's Prefect server
 
-**Status:** Accepted
+**Status:** Accepted — amended by [0009](0009-shared-keepalive-client-for-prefect.md)
 **Date:** 2026-09-06
 **Deciders:** Germano Giuliani
+
+> **Amended 2026-09-09.** The bullet *«`httpx.AsyncClient` per request, no shared client»* below
+> is replaced by [0009](0009-shared-keepalive-client-for-prefect.md): a per-request client opened
+> up to fifteen connections in a burst and was refused from Cloud Run. The rest of this decision
+> stands. The Decision section is left as written, per the ADR rules.
 
 ## Context
 

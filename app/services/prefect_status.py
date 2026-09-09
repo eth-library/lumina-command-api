@@ -119,8 +119,29 @@ async def _post_read(client: httpx.AsyncClient, path: str, body: dict):
     return response.json()
 
 
+# One client for the whole process, reused across requests. A client per request
+# opened every connection fresh — 13 for /sources, 15 for a Studio page load, all
+# within ~50 ms — which tripped a per-source connection limit between Cloud Run
+# and the Prefect host (2026-09-09: immediate refusals after a few requests).
+# Four keep-alive connections carry the same fan-out; asyncio.gather simply
+# queues through them. Uvicorn on the Prefect side drops idle connections after
+# 5 s, so the expiry matches that rather than holding sockets the peer has closed.
+# Never closed: it lives as long as the worker process. See ADR 0009.
+_shared_client: httpx.AsyncClient | None = None
+
+
 def _client() -> httpx.AsyncClient:
-    return httpx.AsyncClient(timeout=PREFECT_TIMEOUT)
+    global _shared_client
+    if _shared_client is None:
+        _shared_client = httpx.AsyncClient(
+            timeout=PREFECT_TIMEOUT,
+            limits=httpx.Limits(
+                max_connections=4,
+                max_keepalive_connections=4,
+                keepalive_expiry=5.0,
+            ),
+        )
+    return _shared_client
 
 
 # -------------------------
@@ -246,39 +267,39 @@ async def get_sources() -> dict:
     The six data sources with their pipeline stages, the last run of each stage, and
     the record count observed at parse time.
     """
-    async with _client() as client:
-        # --- 1. Deployments, and the last run of every deployment we care about ---
-        deployments = await _fetch_deployments(client)
+    client = _client()
+    # --- 1. Deployments, and the last run of every deployment we care about ---
+    deployments = await _fetch_deployments(client)
 
-        wanted = {
-            entrypoint
-            for source in SOURCES.values()
-            for entrypoint in source["stages"].values()
-        }
-        present = [e for e in wanted if e in deployments]
-        last_runs = dict(
-            zip(
-                present,
-                await asyncio.gather(
-                    *(_fetch_last_run(client, deployments[e]["id"]) for e in present)
-                ),
-            )
+    wanted = {
+        entrypoint
+        for source in SOURCES.values()
+        for entrypoint in source["stages"].values()
+    }
+    present = [e for e in wanted if e in deployments]
+    last_runs = dict(
+        zip(
+            present,
+            await asyncio.gather(
+                *(_fetch_last_run(client, deployments[e]["id"]) for e in present)
+            ),
         )
+    )
 
-        # --- 2. Record counts from each parse run's log ---
-        parse_runs = {
-            source_id: last_runs.get(source["stages"].get("parse"))
-            for source_id, source in SOURCES.items()
-        }
-        with_runs = {s: r for s, r in parse_runs.items() if r}
-        logs = dict(
-            zip(
-                with_runs,
-                await asyncio.gather(
-                    *(_fetch_run_logs(client, run["id"]) for run in with_runs.values())
-                ),
-            )
+    # --- 2. Record counts from each parse run's log ---
+    parse_runs = {
+        source_id: last_runs.get(source["stages"].get("parse"))
+        for source_id, source in SOURCES.items()
+    }
+    with_runs = {s: r for s, r in parse_runs.items() if r}
+    logs = dict(
+        zip(
+            with_runs,
+            await asyncio.gather(
+                *(_fetch_run_logs(client, run["id"]) for run in with_runs.values())
+            ),
         )
+    )
 
     # --- 3. Shape the response ---
     sources = []
@@ -353,34 +374,34 @@ async def get_source(source_id: str) -> dict:
 
     source = SOURCES[source_id]
 
-    async with _client() as client:
-        deployments = await _fetch_deployments(client)
+    client = _client()
+    deployments = await _fetch_deployments(client)
 
-        # --- 1. Last run of every stage of this source, plus the shared unify run ---
-        entrypoints = [e for e in source["stages"].values() if e in deployments]
-        unify_deployment = deployments.get(UNIFY_ENTRYPOINT)
-        if unify_deployment:
-            entrypoints.append(UNIFY_ENTRYPOINT)
+    # --- 1. Last run of every stage of this source, plus the shared unify run ---
+    entrypoints = [e for e in source["stages"].values() if e in deployments]
+    unify_deployment = deployments.get(UNIFY_ENTRYPOINT)
+    if unify_deployment:
+        entrypoints.append(UNIFY_ENTRYPOINT)
 
-        last_runs = dict(
-            zip(
-                entrypoints,
-                await asyncio.gather(
-                    *(_fetch_last_run(client, deployments[e]["id"]) for e in entrypoints)
-                ),
-            )
+    last_runs = dict(
+        zip(
+            entrypoints,
+            await asyncio.gather(
+                *(_fetch_last_run(client, deployments[e]["id"]) for e in entrypoints)
+            ),
         )
+    )
 
-        # --- 2. Logs of every stage that has actually run ---
-        ran = {e: r for e, r in last_runs.items() if r}
-        logs = dict(
-            zip(
-                ran,
-                await asyncio.gather(
-                    *(_fetch_run_logs(client, run["id"]) for run in ran.values())
-                ),
-            )
+    # --- 2. Logs of every stage that has actually run ---
+    ran = {e: r for e, r in last_runs.items() if r}
+    logs = dict(
+        zip(
+            ran,
+            await asyncio.gather(
+                *(_fetch_run_logs(client, run["id"]) for run in ran.values())
+            ),
         )
+    )
 
     # --- 3. Shape stages, attaching metrics where a log line matched ---
     unify_counts = _parse_unify_records(logs.get(UNIFY_ENTRYPOINT, []))
@@ -450,28 +471,28 @@ async def get_runs(
             )
         run_filter["flow_runs"] = {"state": {"type": {"any_": states}}}
 
-    async with _client() as client:
-        deployments = await _fetch_deployments(client)
+    client = _client()
+    deployments = await _fetch_deployments(client)
 
-        # Validated against what Prefect actually has, so a typo is rejected rather
-        # than silently returning an empty — but plausible-looking — list.
-        if deployment_names:
-            known = sorted(d["name"] for d in deployments.values())
-            unknown = [n for n in deployment_names if n not in known]
-            if unknown:
-                raise ValueError(
-                    f"Unknown deployment '{unknown[0]}'. Known: {', '.join(known)}."
-                )
-            run_filter["deployments"] = {"name": {"any_": deployment_names}}
+    # Validated against what Prefect actually has, so a typo is rejected rather
+    # than silently returning an empty — but plausible-looking — list.
+    if deployment_names:
+        known = sorted(d["name"] for d in deployments.values())
+        unknown = [n for n in deployment_names if n not in known]
+        if unknown:
+            raise ValueError(
+                f"Unknown deployment '{unknown[0]}'. Known: {', '.join(known)}."
+            )
+        run_filter["deployments"] = {"name": {"any_": deployment_names}}
 
-        runs, total = await asyncio.gather(
-            _post_read(
-                client,
-                "/flow_runs/filter",
-                {**run_filter, "limit": limit, "sort": "START_TIME_DESC"},
-            ),
-            _post_read(client, "/flow_runs/count", run_filter),
-        )
+    runs, total = await asyncio.gather(
+        _post_read(
+            client,
+            "/flow_runs/filter",
+            {**run_filter, "limit": limit, "sort": "START_TIME_DESC"},
+        ),
+        _post_read(client, "/flow_runs/count", run_filter),
+    )
 
     by_id = {d["id"]: d for d in deployments.values()}
     entrypoint_by_id = {d["id"]: e for e, d in deployments.items()}
