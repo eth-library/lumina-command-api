@@ -18,6 +18,8 @@
 export PROJECT_ID="lumina-command-api-…"    # globally unique
 export REGION="europe-west6"                # Zurich; matches deploy.sh
 export BILLING_ACCOUNT="XXXXXX-XXXXXX-XXXXXX"
+export ROUTER="lumina-egress-router"        # Cloud Router carrying the NAT gateway (step 8)
+export NAT="lumina-command-api-nat"         # Cloud NAT gateway for the service's egress
 ```
 
 ## Steps
@@ -82,7 +84,34 @@ export BILLING_ACCOUNT="XXXXXX-XXXXXX-XXXXXX"
    ```
    See [runbook 01](01-deploy.md).
 
-8. **Register the backend with Apigee X.** External consumers reach the API only through
+8. **Make sure the egress path can carry a burst.** `/pipeline/*` reaches the Lumina Engine's
+   Prefect server through Direct VPC egress on `lumina-egress-vpc`, Cloud Router `$ROUTER`, and
+   Cloud NAT `$NAT` with one static IP (`lumina-command-api-egress-ip`). **The creation of that
+   VPC, router and gateway is not recorded here** — they were set up outside this runbook, and
+   this step only verifies the one setting that has bitten: port allocation.
+
+   Cloud NAT's default is static allocation, 64 ports per instance, each held 120 s after close.
+   With the per-request client of [ADR 0007](../adr/0007-prefect-read-only-proxy.md) four page
+   loads exhausted that and every further connection was refused
+   ([ADR 0009](../adr/0009-shared-keepalive-client-for-prefect.md)). Dynamic allocation lifts the
+   ceiling; the code fix keeps the service under it.
+   ```bash
+   gcloud compute routers nats describe "$NAT" --router "$ROUTER" --region "$REGION" \
+     --format="yaml(enableDynamicPortAllocation,enableEndpointIndependentMapping,minPortsPerVm,maxPortsPerVm)"
+   ```
+   Expected: `enableDynamicPortAllocation: true`, `minPortsPerVm: 64`, `maxPortsPerVm: 4096`,
+   `enableEndpointIndependentMapping: false`. If dynamic allocation is missing or `false`:
+   ```bash
+   gcloud compute routers nats update "$NAT" --router "$ROUTER" --region "$REGION" \
+     --enable-dynamic-port-allocation --min-ports-per-vm 64 --max-ports-per-vm 4096
+   ```
+   Takes effect for new connections immediately; no redeploy. Dynamic allocation requires
+   endpoint-independent mapping to be off — if it is on, add
+   `--no-enable-endpoint-independent-mapping`, and `gcloud` refuses the update cleanly otherwise.
+   Verified 2026-09-09: sixty uncached `/sources` calls in a row through Apigee, all `200`; before
+   the change and the code fix, refusals began after four.
+
+9. **Register the backend with Apigee X.** External consumers reach the API only through
    `api.library.ethz.ch` ([ADR 0004](../adr/0004-apigee-as-sole-public-ingress.md)). Apigee needs:
    - the Cloud Run service URL as the target endpoint,
    - the `INTERNAL_API_KEY` value to inject as `x-api-key` toward that target,

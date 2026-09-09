@@ -60,8 +60,11 @@ export API_KEY="…"          # INTERNAL_API_KEY, for the smoke test in Verifica
    ./deploy.sh
    ```
    This runs `gcloud run deploy --source .`: Buildpacks builds the image, pushes it, creates a new
-   revision with 8 GiB / 4 vCPU / 3600 s timeout, binds the three secrets at `:latest`, sets
-   `PREFECT_API_URL` as a plain environment variable, and routes 100 % of traffic to it.
+   revision with 8 GiB / 4 vCPU / 3600 s timeout, capped at 3 instances, binds the three secrets
+   at `:latest`, sets `PREFECT_API_URL` and `APP_ENV` as plain environment variables, and routes
+   100 % of traffic to it. The instance cap bounds the connections the service can open toward
+   the Prefect server — one worker per instance, four keep-alive connections per worker
+   ([ADR 0009](../adr/0009-shared-keepalive-client-for-prefect.md)).
 
    Expected tail: `Service [lumina-command-api] revision [...] has been deployed and is serving
    100 percent of traffic.`
