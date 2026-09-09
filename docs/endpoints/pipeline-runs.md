@@ -36,6 +36,7 @@ Er ist **strikt lesend**. Läufe können über diese API weder gestartet noch ab
 |-----------|-----|---------|---------|--------------|
 | `limit` | Integer | nein | `50` | Anzahl zurückgegebener Läufe, `1`–`200` |
 | `state` | Text | nein | alle | Kommaseparierte Prefect-Zustände, z. B. `RUNNING,FAILED` |
+| `deployment` | Text | nein | alle | Kommaseparierte Deployment-Namen, exakt wie im Feld `deployment` der Antwort, z. B. `Merge: Sources` |
 
 Gültige Werte für `state`:
 
@@ -98,7 +99,7 @@ Die Angabe ist unabhängig von Gross- und Kleinschreibung; `running,failed` funk
 | `next_scheduled_start_time` | Bei geplanten Läufen der vorgesehene Startzeitpunkt |
 | `deployment` | Name des Prefect-Deployments |
 | `source_id` | Zugehörige Datenquelle, oder `null` bei quellenübergreifenden Stufen |
-| `stage` | `harvest`, `parse`, `hierarchy`, `merge`, `unify`, `deduplicate`, `orchestrate` |
+| `stage` | `harvest`, `parse`, `hierarchy`, `merge`, `unify`, `deduplicate`, `load`, `orchestrate` |
 
 ### Zuordnung Lauf → Quelle und Stufe
 
@@ -110,6 +111,7 @@ Die Angabe ist unabhängig von Gross- und Kleinschreibung; `running,failed` funk
 | `merge` | `null` | `Merge: ALMA` — führt SLSP ETH und SLSP Network zusammen |
 | `unify` | `null` | `Merge: Sources` |
 | `deduplicate` | `null` | `Deduplicate: Unified` |
+| `load` | `null` | `Load: Postgres` — lädt den deduplizierten Bestand nach Cloud SQL |
 | `orchestrate` | `null` | `DAG Orchestrator`, `Slim Orchestrator` |
 
 ## Dataflow
@@ -139,6 +141,7 @@ JSON: runs[] mit source_id und stage angereichert
 |-----------|--------|----------|
 | `x-api-key` fehlt / falsch | 401 | `{"detail": "Missing API key."}` bzw. `Invalid API key.` |
 | Unbekannter `state` | 400 | `{"detail": "Unknown state 'BOGUS'. Known: SCHEDULED, PENDING, …"}` |
+| Unbekanntes `deployment` | 400 | `{"detail": "Unknown deployment 'Merge: Source'. Known: DAG Orchestrator, …"}` |
 | `limit` ausserhalb 1–200 | 400 | `{"detail": "limit must be between 1 and 200, got 999."}` |
 | `limit` ist keine Zahl | 422 | FastAPI-Standardantwort der Parametervalidierung |
 | Prefect nicht erreichbar | 502 | `{"detail": "Prefect API unreachable: …"}` |

@@ -54,10 +54,14 @@ async def source(source_id: str):
 async def runs(
     limit: int = RUNS_DEFAULT_LIMIT,
     state: str | None = Query(default=None, description="Comma-separated Prefect state types."),
+    deployment: str | None = Query(
+        default=None, description="Comma-separated deployment names, exactly as returned in `deployment`."
+    ),
 ):
     states = [s.strip().upper() for s in state.split(",") if s.strip()] if state else None
+    names = [d.strip() for d in deployment.split(",") if d.strip()] if deployment else None
     try:
-        return await get_runs(limit=limit, states=states)
+        return await get_runs(limit=limit, states=states, deployment_names=names)
     except ValueError as exc:
         return JSONResponse(status_code=400, content={"detail": str(exc)})
     except httpx.HTTPError as exc:

@@ -76,6 +76,7 @@ CROSS_SOURCE_STAGES: dict[str, str] = {
     "hierarchy_alma": "hierarchy",
     "merge_sources": "unify",
     "deduplicate_unified": "deduplicate",
+    "load_postgres": "load",
     "dag_orchestrator": "orchestrate",
     "slim_orchestrator": "orchestrate",
 }
@@ -426,11 +427,16 @@ async def get_source(source_id: str) -> dict:
 # -------------------------
 # 3. Flow runs
 # -------------------------
-async def get_runs(limit: int = RUNS_DEFAULT_LIMIT, states: list[str] | None = None) -> dict:
+async def get_runs(
+    limit: int = RUNS_DEFAULT_LIMIT,
+    states: list[str] | None = None,
+    deployment_names: list[str] | None = None,
+) -> dict:
     """
     The most recent flow runs across all deployments, newest first.
 
-    Raises ValueError for an out-of-range limit or an unknown state.
+    Raises ValueError for an out-of-range limit, an unknown state, or an unknown
+    deployment name.
     """
     if not 1 <= limit <= RUNS_MAX_LIMIT:
         raise ValueError(f"limit must be between 1 and {RUNS_MAX_LIMIT}, got {limit}.")
@@ -442,10 +448,22 @@ async def get_runs(limit: int = RUNS_DEFAULT_LIMIT, states: list[str] | None = N
             raise ValueError(
                 f"Unknown state '{unknown[0]}'. Known: {', '.join(PREFECT_STATE_TYPES)}."
             )
-        run_filter = {"flow_runs": {"state": {"type": {"any_": states}}}}
+        run_filter["flow_runs"] = {"state": {"type": {"any_": states}}}
 
     async with _client() as client:
         deployments = await _fetch_deployments(client)
+
+        # Validated against what Prefect actually has, so a typo is rejected rather
+        # than silently returning an empty — but plausible-looking — list.
+        if deployment_names:
+            known = sorted(d["name"] for d in deployments.values())
+            unknown = [n for n in deployment_names if n not in known]
+            if unknown:
+                raise ValueError(
+                    f"Unknown deployment '{unknown[0]}'. Known: {', '.join(known)}."
+                )
+            run_filter["deployments"] = {"name": {"any_": deployment_names}}
+
         runs, total = await asyncio.gather(
             _post_read(
                 client,

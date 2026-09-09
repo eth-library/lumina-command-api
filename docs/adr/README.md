@@ -12,8 +12,9 @@ disagree, the table wins — fix the document.
 | [0005](0005-shared-secret-internal-api-key.md) | Shared-secret internal API key for `/commands/*` | Accepted | 2026-04-22 |
 | [0006](0006-secrets-in-secret-manager.md) | Secrets in Secret Manager, injected as env vars at deploy time | Accepted | 2026-04-22 |
 | [0007](0007-prefect-read-only-proxy.md) | A read-only façade over the Lumina Engine's Prefect server | Accepted | 2026-09-06 |
+| [0008](0008-stage-reports-from-cloud-sql.md) | Stage reports and the DAG from Cloud SQL, joined to Prefect by run id | Proposed | 2026-09-09 |
 
-Next number: **0008**.
+Next number: **0009**.
 
 ## When to write one
 

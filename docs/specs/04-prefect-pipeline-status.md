@@ -60,6 +60,12 @@ and without anyone hand-maintaining a list of what the Engine ingests.
       30'603 s while it had been stuck for 461'863 s.
 - [ ] Given `GET /pipeline/runs?state=RUNNING`, then only runs whose state is `RUNNING` are
       returned.
+- [ ] Given `GET /pipeline/runs?deployment=Merge: Sources`, then only runs of that deployment are
+      returned and `total` counts only those — a true count for the selection, not for all runs.
+- [ ] Given an unknown deployment name, then **400** naming the known deployments — never an
+      empty 200, which a typo would otherwise produce.
+- [ ] Every deployment on the Prefect server maps to a non-null `stage`. When the Engine adds a
+      deployment, this mapping is the one place to extend.
 - [ ] Given `GET /pipeline/runs` with no parameters, then at most 50 runs are returned, newest
       first by start time.
 - [ ] Given an unknown source id, when `GET /pipeline/sources/{id}` is called, then **404** with
@@ -151,11 +157,13 @@ GET /pipeline/sources/{source_id}
                     research_collection, semantic_scholar."}
 
 
-GET /pipeline/runs?limit=50&state=RUNNING,FAILED
+GET /pipeline/runs?limit=50&state=RUNNING,FAILED&deployment=Merge:%20Sources
 
-    limit  integer, 1..200, default 50
-    state  comma-separated Prefect state types; omitted means all
-           SCHEDULED PENDING RUNNING COMPLETED FAILED CANCELLED CANCELLING CRASHED PAUSED
+    limit       integer, 1..200, default 50
+    state       comma-separated Prefect state types; omitted means all
+                SCHEDULED PENDING RUNNING COMPLETED FAILED CANCELLED CANCELLING CRASHED PAUSED
+    deployment  comma-separated deployment names, exactly as in the response's
+                `deployment` field; omitted means all
 
   → 200 {
       "fetched_at": "...",
@@ -213,6 +221,7 @@ Five deployments belong to no single source and are reported with `"source_id": 
 | `hierarchy_alma` | `hierarchy` | Runs on the already-merged ALMA set, not on either source alone |
 | `merge_sources` | `unify` | Processes all sources at once |
 | `deduplicate_unified` | `deduplicate` | Cross-source by definition |
+| `load_postgres` | `load` | Loads the deduplicated set into Cloud SQL (deployment added 2026-09-08) |
 | `dag_orchestrator`, `slim_orchestrator` | `orchestrate` | Drive the whole pipeline |
 
 `hierarchy_erara` is the one hierarchy step that *is* source-specific: it runs on e-rara alone.

@@ -19,11 +19,12 @@ info:
     | `hierarchy` | Resolve parent/child relationships |
     | `merge` | Fold SLSP ETH and SLSP Network into one record per work |
     | `unify` | Normalise and merge all sources |
-    | `deduplicate` | Cross-source deduplication, load into PostgreSQL |
+    | `deduplicate` | Cross-source deduplication |
+    | `load` | Load the deduplicated set into PostgreSQL |
     | `orchestrate` | Drive the whole pipeline |
 
-    Runs in the `merge`, `unify`, `deduplicate` and `orchestrate` stages belong to no
-    single source and carry `source_id: null`.
+    Runs in the `merge`, `unify`, `deduplicate`, `load` and `orchestrate` stages belong
+    to no single source and carry `source_id: null`.
 
     ## What this API cannot tell you
 
@@ -99,6 +100,25 @@ paths:
             activity:
               summary: Activity, excluding scheduled runs
               value: RUNNING,COMPLETED,FAILED,CRASHED,CANCELLED
+        - name: deployment
+          in: query
+          required: false
+          description: |
+            Comma-separated deployment names, exactly as they appear in the
+            `deployment` field of the response. Omit to get all deployments.
+
+            An unknown name is rejected with `400` listing the known ones — a typo
+            would otherwise return an empty but plausible-looking list. `total`
+            reflects the filter, so it is a true count for the selection.
+          schema:
+            type: string
+          examples:
+            one:
+              summary: One deployment
+              value: "Merge: Sources"
+            several:
+              summary: Several deployments
+              value: "Merge: Sources,Deduplicate: Unified,Load: Postgres"
       responses:
         "200":
           description: The runs, newest first.
@@ -107,7 +127,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/RunList"
         "400":
-          description: Invalid `state`, or `limit` out of range.
+          description: Invalid `state` or `deployment`, or `limit` out of range.
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
@@ -117,6 +137,11 @@ paths:
                     detail: >-
                       Unknown state 'BOGUS'. Known: SCHEDULED, PENDING, RUNNING,
                       COMPLETED, FAILED, CANCELLED, CANCELLING, CRASHED, PAUSED.
+                unknownDeployment:
+                  value:
+                    detail: >-
+                      Unknown deployment 'Merge: Source'. Known: DAG Orchestrator,
+                      Deduplicate: Unified, Harvester: E PICS, ...
                 limitTooLarge:
                   value:
                     detail: "limit must be between 1 and 200, got 999."
@@ -263,6 +288,7 @@ components:
             - merge
             - unify
             - deduplicate
+            - load
             - orchestrate
             - null
           example: parse
