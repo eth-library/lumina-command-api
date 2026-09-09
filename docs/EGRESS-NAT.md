@@ -138,7 +138,7 @@ ein Skript mit `Cache-Control: no-cache` in einer Schleife.
 |-------|-------------|
 | **Der Weg ist nicht dokumentiert angelegt** | VPC, Router, NAT und die Reservierung der IP wurden ausserhalb der Runbooks erstellt. Wer das Projekt neu aufsetzen muss, findet dafür keine Prozedur — Runbook 03 sagt das ausdrücklich. |
 | **Die Firewall-Regel hängt an der IP** | Die ID-Regel erlaubt genau `34.65.28.93 → 129.132.180.17:4200`. Wird die Egress-IP ersetzt, die NAT neu angelegt oder der Prefect-Host umgezogen, muss die Regel nachgezogen werden — sonst `502` mit errno `111` im Log. Das ist bei diesem Fehlerbild die erste Frage. |
-| **Die ID-Referenz ist im Repository nicht hinterlegt** | Wer die Regel ändern lassen muss, braucht die Ticket- oder Antragsnummer. Sie gehört in Runbook 03, sobald sie vorliegt. |
+| **Für die ID-Regel gibt es keine Referenznummer** | Solche Einträge haben an der ETH keine Ticketnummer. Die Regel wurde vom Engine-Team bei den ID eintragen lassen. Wer sie ändern lassen muss, wendet sich mit IP und Host an die ID und zieht das Engine-Team hinzu. |
 | **Die Grenze ist verschoben, nicht aufgehoben** | Dynamische Zuteilung endet bei 4096 Ports pro Instanz. Mit 120 s TIME_WAIT und vier Verbindungen pro kaltem Aufruf ist das für jede realistische Last irrelevant — aber nicht unendlich. |
 | **Keep-Alive hält nur 5 Sekunden** | Uvicorn auf der Prefect-Seite schliesst Leerlaufverbindungen nach 5 s. Aufrufe, die weiter auseinanderliegen, öffnen wieder bis zu vier neue Verbindungen — was das Budget mit dynamischer Zuteilung problemlos trägt. |
 

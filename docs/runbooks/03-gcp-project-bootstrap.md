@@ -88,9 +88,10 @@ export NAT="lumina-command-api-nat"         # Cloud NAT gateway for the service'
    Prefect server through Direct VPC egress on `lumina-egress-vpc`, Cloud Router `$ROUTER`, and
    Cloud NAT `$NAT` with one static IP (`lumina-command-api-egress-ip`, `34.65.28.93`). On the
    ETH side, a firewall rule requested through the ID opens port 4200 on the Prefect host for
-   exactly that IP — which is why the IP is static. If the address, the gateway or the host ever
-   changes, that rule has to be updated first; the ID request reference belongs here once it is
-   at hand: `ID-Antrag: …`.
+   exactly that IP — which is why the IP is static. The rule was registered with the ID by the
+   Lumina Engine team; there is no ticket or reference number for such entries at ETH. If the
+   address, the gateway or the host ever changes, the ID has to update the rule first — contact
+   them with the new IP and the host, and involve the Engine team, who arranged the original.
 
    **The creation of the VPC, router and gateway is not recorded here** — they were set up outside
    this runbook, and this step only verifies the one setting that has bitten: port allocation.
