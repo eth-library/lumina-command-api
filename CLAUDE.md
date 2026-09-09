@@ -69,7 +69,7 @@ Four kinds of document. Formats, templates, and index rules live in [`docs/READM
 | `docs/adr/NNNN-kebab-title.md` | **Why** the system looks like it does | Before the decision is implemented |
 | `docs/specs/NN-modulename.md` | **What** gets built | Before the module is implemented |
 | `docs/runbooks/NN-task.md` | **How** to run, deploy, recover | In the same commit as the operational change |
-| `README.md`, `docs/SYSTEMOVERVIEW.md`, `docs/endpoints/`, `docs/openapi/` | **Summary** for readers — derived, no authority | On demand only |
+| `README.md`, `docs/SYSTEMOVERVIEW.md`, `docs/EGRESS-NAT.md`, `docs/endpoints/`, `docs/openapi/` | **Summary** for readers — derived, no authority | On demand only |
 
 **ADR triggers** — adopt or replace a framework, runtime, hosting platform, or database · change how
 auth, authorization, or secrets work · add an integration that crosses a trust boundary · establish a

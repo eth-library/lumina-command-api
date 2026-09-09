@@ -7,7 +7,7 @@ Four kinds of document, four purposes. Don't mix them.
 | [`adr/`](adr/) | **Why** the system looks like it does | Before the decision is implemented |
 | [`specs/`](specs/) | **What** gets built | Before the module is implemented |
 | [`runbooks/`](runbooks/) | **How** to run, deploy, recover | In the same commit as the operational change |
-| [`../README.md`](../README.md), `SYSTEMOVERVIEW.md`, [`endpoints/`](endpoints/), [`openapi/`](openapi/) | **Summary** for readers | On demand only |
+| [`../README.md`](../README.md), `SYSTEMOVERVIEW.md`, `EGRESS-NAT.md`, [`endpoints/`](endpoints/), [`openapi/`](openapi/) | **Summary** for readers | On demand only |
 
 The first three each have a `README.md` index — the source of truth for what exists and its
 status — and a `TEMPLATE.md` to copy. Adding a document without updating the index leaves the
@@ -19,8 +19,9 @@ file stay.
 
 **Derived docs.** [`../README.md`](../README.md) is the GitHub-facing project summary and
 developer onboarding; [`SYSTEMOVERVIEW.md`](SYSTEMOVERVIEW.md) is the internal Confluence
-overview and [`endpoints/`](endpoints/) holds one Confluence page per endpoint — both written in
-German for that audience. [`openapi/`](openapi/) holds the machine-readable contract as consumers
+overview, [`EGRESS-NAT.md`](EGRESS-NAT.md) the Confluence page on the network path to Prefect, and
+[`endpoints/`](endpoints/) holds one Confluence page per endpoint — all written in German for that
+audience. [`openapi/`](openapi/) holds the machine-readable contract as consumers
 see it through Apigee, one document per proxy, published to the developer portal by
 [runbook 05](runbooks/05-apigee-proxy.md) — **in English**, because a developer portal is read
 beyond this library and its documents are consumed by client-generating tooling. All of the
