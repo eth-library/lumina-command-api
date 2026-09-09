@@ -9,8 +9,9 @@ One procedure per file, written so someone who did not build the system can exec
 | [03](03-gcp-project-bootstrap.md) | Bootstrap a GCP project | Standing up a new environment from nothing |
 | [04](04-run-udk-pipeline.md) | Run the ETH UDK pipeline end to end | A refreshed UDK export needs processing and indexing |
 | [05](05-apigee-proxy.md) | Publish an endpoint through Apigee X | A new backend path prefix needs to reach consumers; a proxy's target, key, or documentation changes |
+| [06](06-egress-static-ip.md) | Give the service a static egress IP for reaching Prefect | Standing up or rebuilding the network path to the Lumina Engine; moving the service |
 
-Next number: **06**.
+Next number: **07**.
 
 ## Rules
 

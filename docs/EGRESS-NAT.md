@@ -40,10 +40,11 @@ sind aber öffentlich und nicht auf die IP angewiesen.
 dediziert für die Egress-IP `34.65.28.93` geöffnet. Die statische IP ist die Voraussetzung dieser
 Regel — mit den wechselnden Egress-IPs von Cloud Run liesse sie sich nicht formulieren.
 
-**Auf der Google-Seite ist die Erstellung nicht als Prozedur festgehalten.** VPC, Router, NAT und
-die Reservierung der IP wurden ausserhalb der Runbooks angelegt; diese Seite beschreibt, was
-existiert, nicht die Befehlsfolge, mit der man es neu anlegen würde. Dokumentiert und verifiziert
-ist die eine Einstellung, die Probleme gemacht hat — die Port-Zuteilung.
+**Die Erstellung ist als Prozedur festgehalten** — ursprünglich auf der Confluence-Seite
+*Statische Outbound-IP für lumina-command-api* (31.07.2026), seit dem 09.09.2026 auch als
+[Runbook 06](https://github.com/eth-library/lumina-command-api/blob/main/docs/runbooks/06-egress-static-ip.md)
+im Repository, nachgezogen um die dynamische Port-Zuteilung und das Instanz-Maximum. Diese Seite
+beschreibt, was existiert und warum; die Befehlsfolge zum Neuanlegen steht dort.
 
 ## Was am 2026-09-09 passiert ist
 
@@ -136,7 +137,7 @@ ein Skript mit `Cache-Control: no-cache` in einer Schleife.
 
 | Thema | Sachverhalt |
 |-------|-------------|
-| **Der Weg ist nicht dokumentiert angelegt** | VPC, Router, NAT und die Reservierung der IP wurden ausserhalb der Runbooks erstellt. Wer das Projekt neu aufsetzen muss, findet dafür keine Prozedur — Runbook 03 sagt das ausdrücklich. |
+| **Ein Neuaufbau ergibt eine neue IP** | Wird die Adresse je gelöscht oder das Projekt neu aufgesetzt, liefert die Reservierung eine andere IP — und die ID-Regel muss mit der neuen Adresse nochmals veranlasst werden. Runbook 06 sagt darum: Adresse nie löschen, auch bei einem Rollback nicht. |
 | **Die Firewall-Regel hängt an der IP** | Die ID-Regel erlaubt genau `34.65.28.93 → 129.132.180.17:4200`. Wird die Egress-IP ersetzt, die NAT neu angelegt oder der Prefect-Host umgezogen, muss die Regel nachgezogen werden — sonst `502` mit errno `111` im Log. Das ist bei diesem Fehlerbild die erste Frage. |
 | **Für die ID-Regel gibt es keine Referenznummer** | Solche Einträge haben an der ETH keine Ticketnummer. Die Regel wurde vom Engine-Team bei den ID eintragen lassen. Wer sie ändern lassen muss, wendet sich mit IP und Host an die ID und zieht das Engine-Team hinzu. |
 | **Die Grenze ist verschoben, nicht aufgehoben** | Dynamische Zuteilung endet bei 4096 Ports pro Instanz. Mit 120 s TIME_WAIT und vier Verbindungen pro kaltem Aufruf ist das für jede realistische Last irrelevant — aber nicht unendlich. |

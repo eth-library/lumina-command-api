@@ -397,6 +397,7 @@ massgeblich; dieses Dokument wiederholt sie bewusst nicht:
 - [Runbook 03 — Bootstrap a GCP project](https://github.com/eth-library/lumina-command-api/blob/main/docs/runbooks/03-gcp-project-bootstrap.md)
 - [Runbook 04 — Run the ETH UDK pipeline end to end](https://github.com/eth-library/lumina-command-api/blob/main/docs/runbooks/04-run-udk-pipeline.md)
 - [Runbook 05 — Publish an endpoint through Apigee X](https://github.com/eth-library/lumina-command-api/blob/main/docs/runbooks/05-apigee-proxy.md)
+- [Runbook 06 — Give the service a static egress IP for reaching Prefect](https://github.com/eth-library/lumina-command-api/blob/main/docs/runbooks/06-egress-static-ip.md)
 
 ---
 

@@ -93,8 +93,9 @@ export NAT="lumina-command-api-nat"         # Cloud NAT gateway for the service'
    address, the gateway or the host ever changes, the ID has to update the rule first — contact
    them with the new IP and the host, and involve the Engine team, who arranged the original.
 
-   **The creation of the VPC, router and gateway is not recorded here** — they were set up outside
-   this runbook, and this step only verifies the one setting that has bitten: port allocation.
+   Creating the VPC, subnet, address, router and gateway from nothing is
+   [runbook 06](06-egress-static-ip.md). This step only verifies the one setting that has bitten
+   on an existing path: port allocation.
 
    Cloud NAT's default is static allocation, 64 ports per instance, each held 120 s after close.
    With the per-request client of [ADR 0007](../adr/0007-prefect-read-only-proxy.md) four page
